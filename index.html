@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0B4D3A">
+<title>মেসার্স আলমগীর এন্টারপ্রাইজ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Tiro+Bangla&display=swap" rel="stylesheet">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--g9:#052E22;--g8:#0B4D3A;--g7:#157053;--g1:#E8F3ED;--g2:#CFE6DA;--bg:#F2F6F3;--card:#FFFFFF;--ink:#13261E;--mut:#587068;--line:#D8E5DD;
+--gold:#C9A24B;--gold-l:#F3E6BE;--navon:#0B4D3A;
+--buy:#1F6FB2;--sell:#1E8E4E;--due:#C86A10;--staff:#6B4FA0;--ice:#0E86A3;--rep:#9A7414;--exp:#C0453A;--gold-c:#9A7414;
+--buy-t:#1F6FB2;--sell-t:#1E8E4E;--due-t:#C86A10;--staff-t:#6B4FA0;--ice-t:#0E86A3;--rep-t:#8A6710;--exp-t:#C0453A;--gold-t:#8A6710;--green-t:#0B4D3A;
+--shadow:0 2px 10px rgba(5,46,34,.08)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0A1511;--card:#12231C;--ink:#E6F0EB;--mut:#9BB3A8;--line:#25392F;--g1:#173226;--g2:#1F4A38;--navon:#8FD9B4;
+--buy-t:#6DB4EE;--sell-t:#5CCB8A;--due-t:#F0A04B;--staff-t:#B39AE6;--ice-t:#55C6E2;--rep-t:#E0B84F;--exp-t:#F08A80;--gold-t:#E0B84F;--green-t:#8FD9B4;--shadow:none}}
+:root[data-theme="dark"]{--bg:#0A1511;--card:#12231C;--ink:#E6F0EB;--mut:#9BB3A8;--line:#25392F;--g1:#173226;--g2:#1F4A38;--navon:#8FD9B4;
+--buy-t:#6DB4EE;--sell-t:#5CCB8A;--due-t:#F0A04B;--staff-t:#B39AE6;--ice-t:#55C6E2;--rep-t:#E0B84F;--exp-t:#F08A80;--gold-t:#E0B84F;--green-t:#8FD9B4;--shadow:none}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:500 16px/1.5 'Hind Siliguri','Noto Sans Bengali','Kalpurush',system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+button,input,select,textarea{font-family:inherit;color:inherit}
+button{cursor:pointer}
+.k-buy{--c:var(--buy);--ct:var(--buy-t)}.k-sell{--c:var(--sell);--ct:var(--sell-t)}.k-due{--c:var(--due);--ct:var(--due-t)}
+.k-staff{--c:var(--staff);--ct:var(--staff-t)}.k-ice{--c:var(--ice);--ct:var(--ice-t)}.k-rep{--c:var(--rep);--ct:var(--rep-t)}
+.k-exp{--c:var(--exp);--ct:var(--exp-t)}.k-gold{--c:var(--gold-c);--ct:var(--gold-t)}.k-green{--c:var(--g8);--ct:var(--green-t)}
+.hdr{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:linear-gradient(135deg,var(--g9),var(--g8));border-bottom:3px solid var(--gold);color:#fff}
+.hdr-in{max-width:560px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:9px 14px}
+.logo{width:46px;height:46px;flex:none}
+.brand h1{font:400 20px/1.25 'Tiro Bangla',serif;margin:0;color:var(--gold-l)}
+.brand small{display:block;font-size:12px;opacity:.8;font-weight:500}
+.iconbtn{margin-left:auto;width:48px;height:48px;border-radius:50%;border:2px solid var(--gold);background:transparent;font-size:22px;color:#fff;flex:none}
+main{max-width:560px;margin:0 auto;padding:12px 14px 120px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;box-shadow:var(--shadow);margin-bottom:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.grid2 .card{margin:0}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{border-left:6px solid var(--c)}
+.sl{font-size:14px;color:var(--mut);font-weight:600}.si{margin-right:6px}
+.sv{font:400 26px/1.25 'Tiro Bangla',serif;color:var(--ct);margin-top:2px;word-break:break-word}
+.sv.neg{color:var(--exp-t)}
+.ss{font-size:13px;color:var(--mut)}
+.cash{background:linear-gradient(140deg,var(--g9),var(--g8) 70%,var(--g7));color:#fff;border-radius:22px;padding:18px;margin-bottom:12px;border:1px solid var(--gold);position:relative;overflow:hidden}
+.cash .lb{font-size:15px;opacity:.9}
+.cash .big{font:400 40px/1.2 'Tiro Bangla',serif;color:var(--gold-l);margin:2px 0 6px}
+.cash .sub{display:flex;gap:16px;font-size:14px;opacity:.92;flex-wrap:wrap}
+.cash::after{content:"";position:absolute;right:-30px;top:-30px;width:120px;height:120px;border-radius:50%;border:2px solid rgba(201,162,75,.45)}
+.datebar{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+.datebar .nb{width:52px;height:52px;border-radius:14px;border:2px solid var(--line);background:var(--card);font-size:22px;flex:none}
+.dpick{position:relative;flex:1;height:52px;border-radius:14px;border:2px solid var(--gold);background:var(--card);display:flex;align-items:center;justify-content:center;text-align:center;font-weight:700;font-size:16px;line-height:1.2;padding:0 6px}
+.dpick small{display:block;font-weight:500;color:var(--mut);font-size:12px}
+.dpick input{position:absolute;inset:0;width:100%;height:100%;opacity:0;font-size:16px}
+.today{height:52px;border-radius:14px;border:0;background:var(--gold);color:#2A1F05;font-weight:700;padding:0 12px;flex:none}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.tile{background:var(--card);border:1px solid var(--line);border-top:5px solid var(--c);border-radius:16px;padding:10px 2px;display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:600;font-size:13px;min-height:84px;color:var(--ink)}
+.tile .e{font-size:28px}
+h3.sec{font:700 18px/1.3 'Hind Siliguri';margin:4px 0 10px;color:var(--ct,var(--ink))}
+.mut{color:var(--mut);font-size:14px}.grow{flex:1;min-width:0}
+.btn{min-height:56px;border:0;border-radius:16px;font:700 18px 'Hind Siliguri';background:var(--c,var(--g8));color:#fff;width:100%;padding:8px 14px;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;text-align:center;line-height:1.2}
+.btn.gold{background:var(--gold);color:#2A1F05}
+.btn.line{background:transparent;color:var(--ct);border:2px solid var(--c)}
+.btn.gray{background:var(--g1);color:var(--ink)}
+.btn.red{background:var(--exp);color:#fff}
+.btn.sm{min-height:48px;font-size:16px}
+.btn.off{opacity:.45}
+.btnrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.stack{display:grid;gap:10px}
+label{display:block;font-weight:600;margin:12px 0 5px;font-size:15px}
+input,select,textarea{width:100%;height:54px;font-size:18px;border:2px solid var(--line);border-radius:14px;padding:0 14px;background:var(--card)}
+textarea{height:150px;padding:10px 14px;font-size:14px}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:3px solid var(--gold);outline-offset:1px;border-color:var(--c,var(--g8))}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:6px 0 2px}
+.chip{flex:none;border:2px solid var(--line);background:var(--card);border-radius:999px;padding:8px 14px;font-size:15px}
+.totalbox{margin-top:12px;background:var(--g1);border-radius:14px;padding:12px 14px;font-weight:700;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.totalbox b{color:var(--ct);font:400 22px 'Tiro Bangla',serif}
+.seg{display:flex;gap:8px;margin-bottom:12px}
+.seg button{flex:1;min-height:54px;border-radius:14px;border:2px solid var(--line);background:var(--card);font:700 16px 'Hind Siliguri';padding:4px}
+.seg button.on{background:var(--c);border-color:var(--c);color:#fff}
+.item{display:flex;gap:10px;align-items:center;padding:12px 0;border-bottom:1px dashed var(--line)}
+.item:last-child{border-bottom:0}
+.item .amt{font-weight:700;white-space:nowrap}
+.del{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-size:18px;flex:none}
+.tag{display:inline-block;font-size:12px;padding:1px 8px;border-radius:99px;background:var(--g1);margin:2px 4px 0 0}
+.tag.due{background:#F8E3CC;color:#8A4A0A}
+.empty{text-align:center;color:var(--mut);padding:18px 8px}
+.avatar{width:46px;height:46px;border-radius:50%;background:var(--c);color:#fff;display:grid;place-items:center;font:700 20px 'Hind Siliguri';flex:none}
+.shead{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+.shead a{color:var(--ct);text-decoration:none;font-size:14px}
+.tri{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tri button{min-height:56px;border-radius:14px;border:2px solid var(--line);background:var(--card);font:700 15px 'Hind Siliguri';padding:2px}
+.tri .p.on{background:#1E8E4E;border-color:#1E8E4E;color:#fff}
+.tri .a.on{background:#C0453A;border-color:#C0453A;color:#fff}
+.tri .h.on{background:#E0AE2B;border-color:#E0AE2B;color:#2A1F05}
+.minis{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}
+.mini{background:var(--g1);border-radius:12px;padding:8px 6px;text-align:center;font-size:12px;color:var(--mut);line-height:1.3}
+.mini b{display:block;font:400 17px 'Tiro Bangla',serif;color:var(--ct,var(--ink));word-break:break-word}
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th,.tbl td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+.tbl th:first-child,.tbl td:first-child{text-align:left}
+.tbl th{font-size:13px;color:var(--mut)}
+.scroll{overflow-x:auto}
+.kv{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line)}
+.kv:last-child{border-bottom:0}.kv b{white-space:nowrap}
+.kv.tot{font-weight:700;font-size:17px}
+.bar{height:9px;border-radius:6px;background:var(--c);min-width:2px}
+.dayrow{padding:8px 0;border-bottom:1px dashed var(--line)}
+.dayrow .t{display:flex;justify-content:space-between;font-weight:600}
+.nudge{background:var(--gold-l);color:#4A3808;border-radius:14px;padding:12px 14px;margin-bottom:12px;font-weight:600;border:1px solid var(--gold);width:100%;text-align:left;font-size:15px}
+.backbar{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.backbar button{min-height:48px;border-radius:14px;border:2px solid var(--line);background:var(--card);font-weight:700;padding:0 14px;font-size:16px}
+.backbar h2{margin:0;font:400 22px 'Tiro Bangla',serif;color:var(--ct)}
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--card);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding-bottom:env(safe-area-inset-bottom,0px);box-shadow:0 -4px 14px rgba(5,46,34,.1)}
+.nav button{background:none;border:0;padding:8px 2px 7px;display:flex;flex-direction:column;align-items:center;gap:0;font:600 12px 'Hind Siliguri';color:var(--mut);position:relative;min-height:64px}
+.nav .ic{font-size:26px;line-height:1.2}
+.nav button.on{color:var(--navon);font-weight:700}
+.nav button.on::before{content:"";position:absolute;top:0;left:22%;right:22%;height:4px;border-radius:0 0 4px 4px;background:var(--gold)}
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:40;display:none}
+.scrim.open{display:block}
+.sheet{position:fixed;left:0;right:0;bottom:0;max-width:560px;margin:0 auto;z-index:50;background:var(--card);border-radius:24px 24px 0 0;max-height:90%;overflow:auto;padding:10px 16px calc(22px + env(safe-area-inset-bottom,0px));transform:translateY(105%);transition:transform .22s;visibility:hidden;border-top:3px solid var(--gold)}
+.sheet.open{transform:none;visibility:visible}
+.grab{width:46px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 8px}
+.sheet h2{margin:4px 0 4px;font:400 22px 'Tiro Bangla',serif;color:var(--ct,var(--g8))}
+.ask{font-size:18px;margin:10px 0}
+.toast{position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--g8);color:#fff;padding:12px 18px;border-radius:14px;z-index:60;border:1px solid var(--gold);opacity:0;pointer-events:none;transition:.2s;max-width:90%;text-align:center;font-weight:600}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.err{background:var(--exp)}
+.note{font-size:13px;color:var(--mut);margin-top:8px}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+@media(max-width:360px){.tiles{grid-template-columns:repeat(2,1fr)}.sv{font-size:22px}}
+</style>
+</head>
+<body>
+<header class="hdr"><div class="hdr-in">
+<svg class="logo" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="22" fill="#0B4D3A" stroke="#C9A24B" stroke-width="2.5"/><path d="M10 24c4-7 11-10 18-6l6-5v22l-6-5c-7 4-14 1-18-6z" fill="#EAD28F"/><circle cx="16.5" cy="22.3" r="1.6" fill="#0B4D3A"/><path d="M20 20c2 2 2 6 0 8" stroke="#0B4D3A" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg>
+<div class="brand"><h1 id="shopName">মেসার্স আলমগীর এন্টারপ্রাইজ</h1><small>ব্যবসার হিসাব খাতা</small></div>
+<button class="iconbtn" onclick="go('profile')" aria-label="সেটিং ও ব্যাকআপ">⚙️</button>
+</div></header>
+<main id="app"></main>
+<nav class="nav" id="nav"></nav>
+<div class="scrim" id="scrim" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true"><div class="grab"></div><h2 id="sheetTitle"></h2><div id="sheetBody"></div></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* ===== ডেটা সংরক্ষণ (ফোনের ব্রাউজার মেমোরি) ===== */
+const KEY='alamgir_enterprise_v1';
+let memOnly=false;
+const BD='০১২৩৪৫৬৭৮৯';
+const MONTHS=['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
+const DAYS=['রবিবার','সোমবার','মঙ্গলবার','বুধবার','বৃহস্পতিবার','শুক্রবার','শনিবার'];
+const FISH=['ইলিশ','রুই','কাতলা','পাঙ্গাস','তেলাপিয়া','চিংড়ি','বোয়াল','কই','শিং','মাগুর'];
+const bnd=s=>String(s).replace(/\d/g,d=>BD[d]);
+const toLat=s=>String(s).replace(/[০-৯]/g,c=>BD.indexOf(c));
+function defaults(){return{profile:{shop:'মেসার্স আলমগীর এন্টারপ্রাইজ',owner:'',phone:'',addr:''},fish:[],customers:[],ledger:[],
+staff:[1,2,3,4,5,6].map(i=>({id:'s'+i,name:'কর্মচারী '+bnd(i),phone:''})),att:{},emptx:[],ice:[],exp:[],meta:{lastBackup:''}}}
+function load(){try{const r=localStorage.getItem(KEY);if(r)return Object.assign(defaults(),JSON.parse(r))}catch(e){memOnly=true}return defaults()}
+let db=load();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){memOnly=true}}
+
+/* ===== সহায়ক ===== */
+const $=s=>document.querySelector(s);
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const todayStr=()=>ymd(new Date());
+const parse=s=>{const[a,b,c]=s.split('-').map(Number);return new Date(a,b-1,c)};
+const addDays=(s,n)=>{const d=parse(s);d.setDate(d.getDate()+n);return ymd(d)};
+const fmtDate=s=>{const d=parse(s);return bnd(d.getDate())+' '+MONTHS[d.getMonth()]+' '+bnd(d.getFullYear())};
+const fmtShort=s=>{const d=parse(s);return bnd(d.getDate())+' '+MONTHS[d.getMonth()]};
+const fmtDay=s=>DAYS[parse(s).getDay()];
+const bnNum=(n,dec=2)=>bnd((Math.round((Number(n)||0)*Math.pow(10,dec))/Math.pow(10,dec)).toLocaleString('en-IN',{maximumFractionDigits:dec}));
+const taka=n=>{n=Number(n)||0;return(n<-0.004?'-':'')+'৳'+bnNum(Math.abs(n),2)};
+const sum=(a,f)=>a.reduce((s,x)=>s+f(x),0);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const v=id=>{const e=document.getElementById(id);return e?e.value:''};
+const num=id=>parseFloat(toLat(v(id)).replace(/,/g,''))||0;
+const custName=id=>(db.customers.find(c=>c.id===id)||{}).name||'';
+const staffName=id=>(db.staff.find(s=>s.id===id)||{}).name||'';
+const ATT={p:'✅ উপস্থিত',a:'❌ অনুপস্থিত',h:'🌗 হাফ বেলা'};
+let toastT;
+function toast(m,k){const t=$('#toast');t.textContent=m;t.className='toast show'+(k==='err'?' err':'');clearTimeout(toastT);toastT=setTimeout(()=>t.className='toast',2200)}
+
+/* ===== হিসাব (তারিখ অনুযায়ী; প্রতিটি তথ্য একবারই গোনা হয়) ===== */
+function calc(from,to){
+ const R={buy:0,sell:0,buyKg:0,sellKg:0,recv:0,due:0,collect:0,buyOwn:0,iceCost:0,iceIn:0,iceUse:0,att:0,exp:0,expBy:{},adv:0,advRet:0,fishGive:0,fishRet:0};
+ const ok=d=>d>=from&&d<=to;
+ for(const x of db.fish){if(!ok(x.date))continue;const t=x.kg*x.rate;
+  if(x.type==='buy'){R.buy+=t;R.buyKg+=x.kg;if(!x.payer)R.buyOwn+=t}
+  else{R.sell+=t;R.sellKg+=x.kg;R.recv+=x.received;R.due+=t-x.received}}
+ for(const l of db.ledger)if(ok(l.date)&&l.type==='pay')R.collect+=l.amount;
+ for(const i of db.ice)if(ok(i.date)){if(i.type==='in'){R.iceIn+=i.qty;R.iceCost+=i.qty*i.rate}else R.iceUse+=i.qty}
+ for(const k in db.att){if(ok(k.split('|')[0]))R.att+=db.att[k].t||0}
+ for(const e of db.exp)if(ok(e.date)){R.exp+=e.amount;R.expBy[e.cat]=(R.expBy[e.cat]||0)+e.amount}
+ for(const t of db.emptx)if(ok(t.date)){
+  if(t.type==='adv')R.adv+=t.amount;else if(t.type==='fish')R.fishGive+=t.amount;
+  else if(t.ref==='adv')R.advRet+=t.amount;else R.fishRet+=t.amount}
+ R.cost=R.exp+R.iceCost+R.att;
+ R.profit=R.sell-R.buy-R.cost;
+ R.cashIn=R.recv+R.collect+R.advRet+R.fishRet;
+ R.cashOut=R.buyOwn+R.exp+R.iceCost+R.att+R.adv+R.fishGive;
+ R.cash=R.cashIn-R.cashOut;
+ return R}
+function custStats(id,upTo){let due=0,pay=0;
+ for(const x of db.fish)if(x.type==='sell'&&x.custId===id&&x.date<=upTo)due+=x.kg*x.rate-x.received;
+ for(const l of db.ledger)if(l.custId===id&&l.date<=upTo){if(l.type==='due')due+=l.amount;else pay+=l.amount}
+ return{due,pay,bal:due-pay}}
+const totalBaki=d=>sum(db.customers,c=>custStats(c.id,d).bal);
+function empStats(id,upTo){const T=db.emptx.filter(t=>t.empId===id&&t.date<=upTo);
+ const adv=sum(T.filter(t=>t.type==='adv'),t=>t.amount),advRet=sum(T.filter(t=>t.type==='ret'&&t.ref==='adv'),t=>t.amount);
+ const fg=sum(T.filter(t=>t.type==='fish'),t=>t.amount),fr=sum(T.filter(t=>t.type==='ret'&&t.ref==='fish'),t=>t.amount);
+ const spent=sum(db.fish.filter(x=>x.type==='buy'&&x.payer===id&&x.date<=upTo),x=>x.kg*x.rate);
+ return{adv,advRet,advRem:adv-advRet,fg,fr,spent,fishRem:fg-spent-fr}}
+const iceStock=d=>sum(db.ice.filter(i=>i.date<=d),i=>i.type==='in'?i.qty:-i.qty);
+
+/* ===== অবস্থা ও নেভিগেশন ===== */
+const state={page:'home',date:todayStr(),txnTab:'buy',staffTab:'att',repTab:'day',repDate:todayStr(),repMonth:todayStr().slice(0,7),custQ:'',lastFrom:''};
+const NAV=[['home','🏠','হোম'],['txn','🐟','লেনদেন'],['baki','💰','বাকি খাতা'],['staff','👨‍💼','কর্মচারী'],['report','📊','রিপোর্ট']];
+const NAVMAP={ice:'home',expense:'home',profile:'home'};
+function go(p,o){Object.assign(state,o||{});state.page=p;render();window.scrollTo(0,0)}
+function setDate(d){if(d){state.date=d;render()}}
+function shiftDate(n){state.date=addDays(state.date,n);render()}
+function commit(m){save();render();if(m)toast(m)}
+function render(){
+ const y=window.scrollY;
+ $('#shopName').textContent=db.profile.shop||'মেসার্স আলমগীর এন্টারপ্রাইজ';
+ const P={home:homePage,txn:txnPage,baki:bakiPage,staff:staffPage,report:reportPage,ice:icePage,expense:expensePage,profile:profilePage};
+ $('#app').innerHTML=P[state.page]();
+ const cur=NAVMAP[state.page]||state.page;
+ $('#nav').innerHTML=NAV.map(n=>`<button class="${n[0]===cur?'on':''}" onclick="go('${n[0]}')"><span class="ic">${n[1]}</span>${n[2]}</button>`).join('');
+ window.scrollTo(0,y)}
+function dateBar(){const d=state.date,t=todayStr();
+ return `<div class="datebar"><button class="nb" onclick="shiftDate(-1)" aria-label="আগের দিন">‹</button>
+ <label class="dpick" style="margin:0"><span>📅 ${fmtDate(d)}<small>${fmtDay(d)}${d===t?' · আজ':''}</small></span><input type="date" value="${d}" onchange="setDate(this.value)"></label>
+ <button class="nb" onclick="shiftDate(1)" aria-label="পরের দিন">›</button>${d!==t?'<button class="today" onclick="setDate(todayStr())">আজ</button>':''}</div>`}
+function backBar(t,k){return `<div class="backbar ${k}"><button onclick="go('home')">‹ হোম</button><h2>${t}</h2></div>`}
+function stat(k,ic,label,val,sub,neg){return `<div class="card stat k-${k}"><div class="sl"><span class="si">${ic}</span>${label}</div><div class="sv ${neg?'neg':''}">${val}</div>${sub?`<div class="ss">${sub}</div>`:''}</div>`}
+
+/* ===== বটম শিট ===== */
+let pending=null;
+function openSheet(title,html,k){const s=$('#sheet');s.className='sheet open '+(k||'');$('#sheetTitle').textContent=title;$('#sheetBody').innerHTML=html;$('#scrim').classList.add('open');s.scrollTop=0}
+function closeSheet(){$('#sheet').classList.remove('open');$('#scrim').classList.remove('open')}
+function ask(msg,fn,label){pending=fn;openSheet('নিশ্চিত করুন',`<p class="ask">${msg}</p><div class="btnrow"><button class="btn gray" onclick="closeSheet()">না</button><button class="btn red" onclick="runPending()">${label||'হ্যাঁ, মুছুন'}</button></div>`)}
+function runPending(){const f=pending;pending=null;closeSheet();if(f)f()}
+
+/* ===== হোম / ড্যাশবোর্ড ===== */
+function homePage(){
+ const d=state.date,c=calc(d,d),baki=totalBaki(d),lab=d===todayStr()?'আজকের':fmtShort(d)+'-এর';
+ const has=db.fish.length+db.ledger.length>0;
+ const nudge=has&&!db.meta.lastBackup?`<button class="nudge" onclick="go('profile')">⚠️ এখনও ব্যাকআপ নেওয়া হয়নি। ডেটা নিরাপদ রাখতে ব্যাকআপ নিন ›</button>`:'';
+ const todays=db.fish.filter(x=>x.date===d).slice(-5).reverse();
+ return dateBar()+nudge+`
+ <div class="cash"><div class="lb">💵 ${lab} নগদ টাকা (আসা − গেছে)</div><div class="big">${taka(c.cash)}</div>
+ <div class="sub"><span>⬇ আসা ${taka(c.cashIn)}</span><span>⬆ গেছে ${taka(c.cashOut)}</span></div></div>
+ <div class="grid2">
+ ${stat('buy','🛒',lab+' কেনা',taka(c.buy),bnNum(c.buyKg)+' কেজি')}
+ ${stat('sell','💵',lab+' বিক্রি',taka(c.sell),bnNum(c.sellKg)+' কেজি')}
+ ${stat('gold','📈','আনুমানিক লাভ',taka(c.profit),'সব খরচ বাদে',c.profit<0)}
+ ${stat('due','💰','মোট বাকি',taka(baki),'কাস্টমারের কাছে পাওনা')}
+ </div>
+ <h3 class="sec">দ্রুত এন্ট্রি</h3>
+ <div class="tiles">
+ <button class="tile k-buy" onclick="go('txn',{txnTab:'buy'})"><span class="e">🛒</span>মাছ কেনা</button>
+ <button class="tile k-sell" onclick="go('txn',{txnTab:'sell'})"><span class="e">💵</span>মাছ বিক্রি</button>
+ <button class="tile k-due" onclick="go('baki')"><span class="e">💰</span>বাকি খাতা</button>
+ <button class="tile k-staff" onclick="go('staff',{staffTab:'att'})"><span class="e">🗓️</span>হাজিরা</button>
+ <button class="tile k-ice" onclick="go('ice')"><span class="e">🧊</span>বরফ</button>
+ <button class="tile k-exp" onclick="go('expense')"><span class="e">🧾</span>খরচ</button>
+ <button class="tile k-rep" onclick="go('report')"><span class="e">📊</span>রিপোর্ট</button>
+ <button class="tile k-gold" onclick="doBackup()"><span class="e">💾</span>ব্যাকআপ</button>
+ </div>
+ <div class="card"><h3 class="sec">এই দিনের সর্বশেষ এন্ট্রি</h3>${todays.length?todays.map(fishRow).join(''):'<div class="empty">এই তারিখে কোনো মাছের এন্ট্রি নেই।<br>উপরের “মাছ কেনা” বা “মাছ বিক্রি” চাপুন।</div>'}</div>`}
+
+/* ===== লেনদেন: মাছ কেনা-বেচা ===== */
+function fishNames(){const u=[];db.fish.slice().reverse().forEach(x=>{if(!u.includes(x.name))u.push(x.name)});FISH.forEach(n=>{if(!u.includes(n))u.push(n)});return u}
+function nameChips(id){return `<div class="chips">${fishNames().slice(0,10).map(n=>`<button type="button" class="chip" data-v="${esc(n)}" onclick="document.getElementById('${id}').value=this.dataset.v">${esc(n)}</button>`).join('')}</div>`}
+function fishRow(x){const t=x.kg*x.rate,due=t-x.received,cust=x.custId?custName(x.custId):'';
+ return `<div class="item"><div class="grow"><b>${x.type==='buy'?'🛒':'💵'} ${x.name?esc(x.name):(x.type==='buy'?'মাছ কেনা':'মাছ বিক্রি')}</b>
+ <div class="mut">${bnNum(x.kg)} কেজি × ${taka(x.rate)}${x.type==='buy'?(x.from?' · ফ্রম: '+esc(x.from):''):(cust?' · '+esc(cust):'')}</div>
+ ${x.type==='sell'&&due>0.004?`<span class="tag due">বাকি ${taka(due)}</span>`:''}${x.payer?`<span class="tag">${esc(staffName(x.payer))}-এর টাকায়</span>`:''}</div>
+ <div class="amt">${taka(t)}</div><button class="del" onclick="delFish('${x.id}')" aria-label="মুছুন">🗑</button></div>`}
+function delFish(id){ask('এই এন্ট্রি মুছে ফেলবেন?',()=>{db.fish=db.fish.filter(x=>x.id!==id);commit('মুছে ফেলা হয়েছে')})}
+function setTxn(t){state.txnTab=t;render()}
+function txnPage(){
+ const t=state.txnTab,d=state.date,isBuy=t==='buy';
+ const list=db.fish.filter(x=>x.date===d&&x.type===t);
+ const kg=sum(list,x=>x.kg),amt=sum(list,x=>x.kg*x.rate),recv=sum(list,x=>x.received);
+ const froms=[...new Set(db.fish.filter(x=>x.from).map(x=>x.from))];
+ const summary=isBuy?`<div class="card stat k-buy"><div class="sl">🛒 এই দিনের কেনার হিসাব</div><div class="minis">
+ <div class="mini"><b>${bnNum(kg)}</b>কেজি</div><div class="mini"><b>${taka(amt)}</b>মোট টাকা</div><div class="mini"><b>${kg?taka(amt/kg):'—'}</b>গড় দর/কেজি</div></div></div>`
+ :`<div class="card stat k-sell"><div class="sl">💵 এই দিনের বিক্রির হিসাব</div><div class="minis">
+ <div class="mini"><b>${taka(amt)}</b>মোট বিক্রি</div><div class="mini"><b>${taka(recv)}</b>নগদ পেয়েছি</div><div class="mini"><b>${taka(amt-recv)}</b>বাকি</div></div></div>`;
+ const form=isBuy?`<div class="card k-buy"><h3 class="sec">🛒 নতুন মাছ কেনা</h3>
+ 
+ <div class="row2"><div><label>পরিমাণ (কেজি)</label><input id="b_kg" inputmode="decimal" placeholder="০" oninput="liveBuy()"></div>
+ <div><label>ক্রয়মূল্য (৳/কেজি)</label><input id="b_rate" inputmode="decimal" placeholder="০" oninput="liveBuy()"></div></div>
+ <label>ফ্রম (কোথা থেকে কিনলাম)</label><input id="b_from" list="fromList" placeholder="ঘাট / আড়ত / সরবরাহকারী" value="${esc(state.lastFrom)}" autocomplete="off">
+ <datalist id="fromList">${froms.map(f=>`<option value="${esc(f)}">`).join('')}</datalist>
+ <label>টাকা কার কাছ থেকে গেল</label><select id="b_payer"><option value="">নিজের নগদ টাকা</option>${db.staff.map(s=>`<option value="${s.id}">${esc(s.name)}-এর কাছে থাকা টাকা</option>`).join('')}</select>
+ <div class="totalbox"><span>মোট ক্রয়মূল্য</span><b id="b_total">৳০</b></div>
+ <div style="margin-top:12px"><button class="btn" onclick="saveBuy()">✔ কেনা সংরক্ষণ করুন</button></div></div>`
+ :`<div class="card k-sell"><h3 class="sec">💵 নতুন মাছ বিক্রি</h3>
+ 
+ <div class="row2"><div><label>পরিমাণ (কেজি)</label><input id="s_kg" inputmode="decimal" placeholder="০" oninput="liveSell()"></div>
+ <div><label>বিক্রয়মূল্য (৳/কেজি)</label><input id="s_rate" inputmode="decimal" placeholder="০" oninput="liveSell()"></div></div>
+ <label>ক্রেতা (বাকি হলে অবশ্যই)</label><select id="s_cust" onchange="newCustToggle()"><option value="">নগদ ক্রেতা (নাম ছাড়া)</option>${db.customers.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}<option value="__new">➕ নতুন কাস্টমার</option></select>
+ <div id="newCust" style="display:none"><div class="row2"><div><label>নাম</label><input id="s_newname" placeholder="কাস্টমারের নাম"></div><div><label>ফোন</label><input id="s_newphone" inputmode="tel" placeholder="০১৭…"></div></div></div>
+ <label>নগদ পেলাম (৳) — ফাঁকা রাখলে পুরো নগদ</label><input id="s_recv" inputmode="decimal" placeholder="পুরো নগদ" oninput="liveSell()">
+ <div class="chips"><button class="chip" onclick="document.getElementById('s_recv').value='';liveSell()">পুরো নগদ</button><button class="chip" onclick="document.getElementById('s_recv').value='0';liveSell()">পুরো বাকি</button></div>
+ <div class="totalbox"><span>মোট বিক্রি <b id="s_total">৳০</b></span><span>বাকি থাকবে <b id="s_due">৳০</b></span></div>
+ <div style="margin-top:12px"><button class="btn" onclick="saveSell()">✔ বিক্রি সংরক্ষণ করুন</button></div></div>`;
+ return dateBar()+`<datalist id="fishNames">${fishNames().map(n=>`<option value="${esc(n)}">`).join('')}</datalist>
+ <div class="seg"><button class="k-buy ${isBuy?'on':''}" onclick="setTxn('buy')">🛒 মাছ কেনা</button><button class="k-sell ${!isBuy?'on':''}" onclick="setTxn('sell')">💵 মাছ বিক্রি</button></div>
+ <div class="k-${t}">${summary}${form}<div class="card"><h3 class="sec">${isBuy?'আজকের কেনার তালিকা':'আজকের বিক্রির তালিকা'}</h3>${list.length?list.slice().reverse().map(fishRow).join(''):'<div class="empty">এই তারিখে এখনও কোনো এন্ট্রি নেই।</div>'}</div></div>`}
+function liveBuy(){$('#b_total').textContent=taka(num('b_kg')*num('b_rate'))}
+function liveSell(){const t=num('s_kg')*num('s_rate');let r=v('s_recv').trim()===''?t:num('s_recv');r=Math.min(r,t);$('#s_total').textContent=taka(t);$('#s_due').textContent=taka(t-r)}
+function newCustToggle(){$('#newCust').style.display=v('s_cust')==='__new'?'block':'none'}
+function saveBuy(){
+ const name='',kg=num('b_kg'),rate=num('b_rate');
+ if(!(kg>0))return toast('পরিমাণ (কেজি) লিখুন','err');
+ if(!(rate>0))return toast('ক্রয়মূল্য লিখুন','err');
+ const from=v('b_from').trim();state.lastFrom=from;
+ db.fish.push({id:uid(),date:state.date,type:'buy',name,kg,rate,from,payer:v('b_payer'),received:0,custId:''});
+ commit('কেনা সংরক্ষিত হয়েছে ✔')}
+function saveSell(){
+ const name='',kg=num('s_kg'),rate=num('s_rate');
+ if(!(kg>0))return toast('পরিমাণ (কেজি) লিখুন','err');
+ if(!(rate>0))return toast('বিক্রয়মূল্য লিখুন','err');
+ const total=kg*rate;let recv=v('s_recv').trim()===''?total:num('s_recv');recv=Math.min(recv,total);
+ const due=total-recv;let cust=v('s_cust');
+ if(cust==='__new'){const nm=v('s_newname').trim();if(!nm)return toast('নতুন কাস্টমারের নাম লিখুন','err');
+  cust=uid();db.customers.push({id:cust,name:nm,phone:toLat(v('s_newphone')).trim()})}
+ if(due>0.004&&!cust)return toast('বাকি হলে ক্রেতা বেছে নিন','err');
+ db.fish.push({id:uid(),date:state.date,type:'sell',name,kg,rate,from:'',payer:'',received:recv,custId:cust});
+ commit('বিক্রি সংরক্ষিত হয়েছে ✔')}
+
+/* ===== বাকি খাতা ===== */
+function bakiPage(){
+ const d=state.date,q=state.custQ.trim().toLowerCase();
+ let cs=db.customers.map(c=>({c,s:custStats(c.id,d)})).filter(x=>!q||x.c.name.toLowerCase().includes(q)||(x.c.phone||'').includes(q)).sort((a,b)=>b.s.bal-a.s.bal);
+ const tot=totalBaki(d),due=sum(db.customers,c=>custStats(c.id,d).due),pay=sum(db.customers,c=>custStats(c.id,d).pay);
+ return dateBar()+`<div class="k-due"><div class="card stat"><div class="sl">💰 ${fmtShort(d)} পর্যন্ত মোট বাকি</div><div class="sv">${taka(tot)}</div>
+ <div class="minis"><div class="mini"><b>${taka(due)}</b>মোট বাকি দেওয়া</div><div class="mini"><b>${taka(pay)}</b>মোট জমা</div><div class="mini"><b>${bnNum(db.customers.filter(c=>custStats(c.id,d).bal>0.004).length,0)} জন</b>বাকিদার</div></div></div>
+ <button class="btn" onclick="custSheet()">➕ নতুন কাস্টমার যোগ করুন</button>
+ <label>খুঁজুন</label><input id="cq" placeholder="নাম বা ফোন নম্বর" value="${esc(state.custQ)}" oninput="state.custQ=this.value;clearTimeout(window._cq);window._cq=setTimeout(()=>{render();const e=document.getElementById('cq');e.focus();e.setSelectionRange(e.value.length,e.value.length)},350)">
+ <div style="height:12px"></div>
+ ${cs.length?cs.map(({c,s})=>custCard(c,s)).join(''):'<div class="card empty">কোনো কাস্টমার নেই।<br>“নতুন কাস্টমার যোগ করুন” চাপুন, অথবা মাছ বিক্রির সময় যোগ করুন।</div>'}</div>`}
+function smsLink(c,bal){const msg='আসসালামু আলাইকুম, '+c.name+'। '+(db.profile.shop||'মেসার্স আলমগীর এন্টারপ্রাইজ')+'-এ আপনার বকেয়া '+taka(bal)+'। অনুগ্রহ করে দ্রুত পরিশোধ করুন। ধন্যবাদ।';return 'sms:'+c.phone+'?body='+encodeURIComponent(msg)}
+function custCard(c,s){const has=!!c.phone;
+ return `<div class="card k-due"><div class="shead"><div class="avatar">${esc(c.name.trim().charAt(0)||'?')}</div><div class="grow"><b style="font-size:18px">${esc(c.name)}</b><div class="mut">${has?bnd(esc(c.phone)):'ফোন নম্বর নেই'}</div></div>
+ <div style="text-align:right"><div class="mut">বর্তমান পাওনা</div><div class="sv" style="font-size:24px;${s.bal<=0.004?'color:var(--sell-t)':''}">${taka(s.bal)}</div></div></div>
+ <div class="minis" style="margin:0 0 10px"><div class="mini"><b>${taka(s.due)}</b>মোট বাকি</div><div class="mini"><b>${taka(s.pay)}</b>টাকা জমা</div><div class="mini"><b>${taka(s.bal)}</b>বর্তমান পাওনা</div></div>
+ <div class="btnrow" style="margin-top:0">
+ <button class="btn sell k-sell" onclick="paySheet('${c.id}')">⬇ পেমেন্ট নিন</button>
+ <button class="btn k-due" onclick="dueSheet('${c.id}')">➕ বাকি লিখুন</button>
+ ${has?`<a class="btn line k-buy sm" href="tel:${esc(c.phone)}">📞 কল</a><a class="btn line k-sell sm" href="${smsLink(c,Math.max(s.bal,0))}">💬 SMS</a>`:`<button class="btn line k-buy sm off" onclick="toast('আগে ফোন নম্বর যোগ করুন','err')">📞 কল</button><button class="btn line k-sell sm off" onclick="toast('আগে ফোন নম্বর যোগ করুন','err')">💬 SMS</button>`}
+ </div><div style="margin-top:10px"><button class="btn gray sm" onclick="custHistory('${c.id}')">📜 হিসাবের খাতা দেখুন</button></div></div>`}
+function custSheet(id){const c=id?db.customers.find(x=>x.id===id):null;
+ openSheet(c?'কাস্টমার এডিট':'নতুন কাস্টমার',`<label>কাস্টমারের নাম</label><input id="c_name" value="${esc(c?c.name:'')}" placeholder="নাম">
+ <label>ফোন নম্বর</label><input id="c_phone" inputmode="tel" value="${esc(c?c.phone:'')}" placeholder="০১৭…">
+ ${c?'':`<label>আগের বাকি (থাকলে)</label><input id="c_old" inputmode="decimal" placeholder="০">`}
+ <div class="btnrow"><button class="btn gray" onclick="closeSheet()">বাতিল</button><button class="btn k-due" onclick="saveCust('${c?c.id:''}')">সংরক্ষণ</button></div>`,'k-due')}
+function saveCust(id){const name=v('c_name').trim(),phone=toLat(v('c_phone')).trim();if(!name)return toast('নাম লিখুন','err');
+ if(id){const c=db.customers.find(x=>x.id===id);c.name=name;c.phone=phone}
+ else{const nid=uid();db.customers.push({id:nid,name,phone});const old=num('c_old');if(old>0)db.ledger.push({id:uid(),date:state.date,custId:nid,type:'due',amount:old,note:'আগের বাকি'})}
+ closeSheet();commit('সংরক্ষিত ✔')}
+function paySheet(id){const c=db.customers.find(x=>x.id===id),s=custStats(id,'9999-12-31');
+ openSheet('পেমেন্ট গ্রহণ',`<div class="mut">${esc(c.name)} · বর্তমান পাওনা ${taka(s.bal)} · তারিখ ${fmtDate(state.date)}</div>
+ <label>কত টাকা পেলাম (৳)</label><input id="p_amt" inputmode="decimal" placeholder="০">
+ ${s.bal>0?`<div class="chips"><button class="chip" onclick="document.getElementById('p_amt').value='${s.bal}'">পুরো বাকি ${taka(s.bal)}</button></div>`:''}
+ <label>নোট (ঐচ্ছিক)</label><input id="p_note" placeholder="যেমন: বিকাশে পেয়েছি">
+ <div class="btnrow"><button class="btn gray" onclick="closeSheet()">বাতিল</button><button class="btn k-sell" onclick="saveLedger('${id}','pay')">জমা নিন</button></div>`,'k-sell')}
+function dueSheet(id){const c=db.customers.find(x=>x.id===id);
+ openSheet('নতুন বাকি লিখুন',`<div class="mut">${esc(c.name)} · তারিখ ${fmtDate(state.date)}<br>মাছ বিক্রির বাকি এখানে আবার লিখবেন না — ওটা নিজে থেকেই যোগ হয়।</div>
+ <label>বাকি টাকা (৳)</label><input id="p_amt" inputmode="decimal" placeholder="০">
+ <label>নোট</label><input id="p_note" placeholder="কীসের বাকি">
+ <div class="btnrow"><button class="btn gray" onclick="closeSheet()">বাতিল</button><button class="btn k-due" onclick="saveLedger('${id}','due')">সংরক্ষণ</button></div>`,'k-due')}
+function saveLedger(id,type){const a=num('p_amt');if(!(a>0))return toast('টাকার পরিমাণ লিখুন','err');
+ db.ledger.push({id:uid(),date:state.date,custId:id,type,amount:a,note:v('p_note').trim()});closeSheet();commit(type==='pay'?'পেমেন্ট জমা হয়েছে ✔':'বাকি লেখা হয়েছে ✔')}
+function custHistory(id){const c=db.customers.find(x=>x.id===id);const rows=[];
+ db.fish.filter(x=>x.type==='sell'&&x.custId===id).forEach(x=>{const t=x.kg*x.rate;rows.push({d:x.date,t:`🐟 ${esc(x.name)} ${bnNum(x.kg)} কেজি (মোট ${taka(t)}${x.received>0?', নগদ '+taka(x.received):''})`,a:t-x.received,k:'due'})});
+ db.ledger.filter(l=>l.custId===id).forEach(l=>rows.push({d:l.date,t:(l.type==='pay'?'⬇ পেমেন্ট জমা':'➕ বাকি')+(l.note?' · '+esc(l.note):''),a:l.amount,k:l.type,id:l.id}));
+ rows.sort((a,b)=>b.d.localeCompare(a.d));const s=custStats(id,'9999-12-31');
+ openSheet(c.name+' — হিসাব',`<div class="minis" style="margin:6px 0 10px"><div class="mini"><b>${taka(s.due)}</b>মোট বাকি</div><div class="mini"><b>${taka(s.pay)}</b>জমা</div><div class="mini"><b>${taka(s.bal)}</b>পাওনা</div></div>
+ ${rows.length?rows.map(r=>`<div class="item"><div class="grow"><div class="mut">${fmtDate(r.d)}</div>${r.t}</div><div class="amt" style="color:var(${r.k==='pay'?'--sell-t':'--due-t'})">${r.k==='pay'?'−':'+'}${taka(r.a)}</div>${r.id?`<button class="del" onclick="delLedger('${r.id}')">🗑</button>`:''}</div>`).join(''):'<div class="empty">কোনো লেনদেন নেই</div>'}
+ <div class="btnrow"><button class="btn gray sm" onclick="custSheet('${id}')">✏️ নাম/ফোন এডিট</button>${rows.length?'<span></span>':`<button class="btn red sm" onclick="delCust('${id}')">🗑 কাস্টমার মুছুন</button>`}</div>`,'k-due')}
+function delLedger(id){ask('এই এন্ট্রি মুছবেন?',()=>{db.ledger=db.ledger.filter(l=>l.id!==id);commit('মুছে ফেলা হয়েছে')})}
+function delCust(id){ask('এই কাস্টমার মুছে ফেলবেন?',()=>{db.customers=db.customers.filter(c=>c.id!==id);commit('মুছে ফেলা হয়েছে')})}
+
+/* ===== কর্মচারী ===== */
+function staffPage(){const t=state.staffTab;
+ return dateBar()+`<div class="seg k-staff"><button class="${t==='att'?'on':''}" onclick="go('staff',{staffTab:'att'})">🗓️ হাজিরা</button><button class="${t==='tx'?'on':''}" onclick="go('staff',{staffTab:'tx'})">💸 অগ্রিম ও লেনদেন</button></div>`+(t==='att'?attView():txView())}
+function attView(){const d=state.date,m=d.slice(0,7);
+ const rec=id=>db.att[d+'|'+id]||{};
+ const cnt=s=>db.staff.filter(x=>rec(x.id).s===s).length,taken=sum(db.staff,x=>rec(x.id).t||0);
+ return `<div class="card k-staff stat"><div class="sl">👨‍💼 ${fmtShort(d)} তারিখের হাজিরা</div><div class="minis" style="grid-template-columns:repeat(4,1fr)">
+ <div class="mini"><b>${bnNum(cnt('p'),0)}</b>উপস্থিত</div><div class="mini"><b>${bnNum(cnt('a'),0)}</b>অনুপস্থিত</div><div class="mini"><b>${bnNum(cnt('h'),0)}</b>হাফ</div><div class="mini"><b>${taka(taken)}</b>টাকা নিল</div></div></div>`+
+ db.staff.map(s=>{const r=rec(s.id);let p=0,a=0,h=0,t=0;
+  for(const k in db.att){if(k.startsWith(m)&&k.endsWith('|'+s.id)){const z=db.att[k];if(z.s==='p')p++;if(z.s==='a')a++;if(z.s==='h')h++;t+=z.t||0}}
+  return `<div class="card k-staff"><div class="shead"><div class="avatar">${esc(s.name.trim().charAt(0))}</div><div class="grow"><b style="font-size:18px">${esc(s.name)}</b><br>${s.phone?`<a href="tel:${esc(s.phone)}">📞 ${bnd(esc(s.phone))}</a>`:'<span class="mut">মোবাইল নম্বর নেই</span>'}</div>
+  <button class="del" onclick="staffSheet('${s.id}')" aria-label="নাম এডিট">✏️</button></div>
+  <div class="tri"><button class="p ${r.s==='p'?'on':''}" onclick="setAtt('${s.id}','p')">✅<br>উপস্থিত</button><button class="a ${r.s==='a'?'on':''}" onclick="setAtt('${s.id}','a')">❌<br>অনুপস্থিত</button><button class="h ${r.s==='h'?'on':''}" onclick="setAtt('${s.id}','h')">🌗<br>হাফ বেলা</button></div>
+  <label>আজ কত টাকা নিল (৳)</label><input inputmode="decimal" placeholder="০" value="${r.t||''}" onchange="setTaken('${s.id}',this.value)">
+  <div class="minis"><div class="mini"><b>${bnNum(p,0)}</b>মাসে উপস্থিত</div><div class="mini"><b>${bnNum(a,0)} / ${bnNum(h,0)}</b>অনুপস্থিত / হাফ</div><div class="mini"><b>${taka(t)}</b>মাসে মোট নিল</div></div>
+  <div style="margin-top:10px"><button class="btn gray sm" onclick="staffHistory('${s.id}')">📜 তারিখ অনুযায়ী রেকর্ড</button></div></div>`}).join('')+
+ `<div class="note">হাজিরায় “টাকা নিল” অংশটি শ্রমিক খরচ হিসেবে খরচের হিসাবে নিজে থেকেই যোগ হয়। ব্যক্তিগত অগ্রিম আলাদা — “অগ্রিম ও লেনদেন” ট্যাবে।</div>`}
+function setAtt(id,s){const k=state.date+'|'+id,r=db.att[k]||{};r.s=r.s===s?'':s;if(!r.s&&!r.t)delete db.att[k];else db.att[k]=r;commit()}
+function setTaken(id,val){const k=state.date+'|'+id,r=db.att[k]||{};r.t=Math.max(0,parseFloat(toLat(val).replace(/,/g,''))||0);if(!r.s&&!r.t)delete db.att[k];else db.att[k]=r;commit('সংরক্ষিত ✔')}
+function staffSheet(id){const s=db.staff.find(x=>x.id===id);
+ openSheet('কর্মচারীর তথ্য',`<label>কর্মচারীর নাম</label><input id="st_name" value="${esc(s.name)}"><label>মোবাইল নম্বর</label><input id="st_phone" inputmode="tel" value="${esc(s.phone)}" placeholder="০১৭…">
+ <div class="btnrow"><button class="btn gray" onclick="closeSheet()">বাতিল</button><button class="btn k-staff" onclick="saveStaff('${id}')">সংরক্ষণ</button></div>`,'k-staff')}
+function saveStaff(id){const n=v('st_name').trim();if(!n)return toast('নাম লিখুন','err');const s=db.staff.find(x=>x.id===id);s.name=n;s.phone=toLat(v('st_phone')).trim();closeSheet();commit('সংরক্ষিত ✔')}
+function staffHistory(id){const s=db.staff.find(x=>x.id===id);
+ const rows=Object.keys(db.att).filter(k=>k.endsWith('|'+id)).map(k=>({d:k.split('|')[0],...db.att[k]})).sort((a,b)=>b.d.localeCompare(a.d));
+ openSheet(s.name+' — রেকর্ড',`<div class="minis" style="margin:6px 0"><div class="mini"><b>${bnNum(rows.filter(r=>r.s==='p').length,0)}</b>উপস্থিত</div><div class="mini"><b>${bnNum(rows.filter(r=>r.s==='a').length,0)}</b>অনুপস্থিত</div><div class="mini"><b>${taka(sum(rows,r=>r.t||0))}</b>মোট নিল</div></div>
+ ${rows.length?rows.map(r=>`<div class="item"><div class="grow"><b>${fmtDate(r.d)}</b><div class="mut">${fmtDay(r.d)}</div></div><div>${r.s?ATT[r.s]:'—'}</div><div class="amt">${r.t?taka(r.t):''}</div></div>`).join(''):'<div class="empty">কোনো রেকর্ড নেই</div>'}`,'k-staff')}
+const TXN={adv:['ব্যক্তিগত অগ্রিম','🙋','due'],fish:['মাছ কেনার টাকা','🐟','buy'],ret:['টাকা ফেরত','↩️','sell']};
+function txView(){const d=state.date;
+ const day=db.emptx.filter(t=>t.date===d);
+ const all=db.staff.map(s=>({s,e:empStats(s.id,d)}));
+ return `<div class="stack" style="margin-bottom:12px">${Object.keys(TXN).map(k=>`<button class="btn k-${TXN[k][2]}" onclick="empSheet('${k}')">${TXN[k][1]} ${TXN[k][0]} ${k==='ret'?'নিন':'দিন'}</button>`).join('')}</div>
+ <div class="grid2"><div class="card stat k-due"><div class="sl">অগ্রিম অবশিষ্ট</div><div class="sv" style="font-size:22px">${taka(sum(all,x=>x.e.advRem))}</div></div>
+ <div class="card stat k-buy"><div class="sl">মাছ কেনার টাকা অবশিষ্ট</div><div class="sv" style="font-size:22px">${taka(sum(all,x=>x.e.fishRem))}</div></div></div>`+
+ all.map(({s,e})=>`<div class="card k-staff"><div class="shead" style="margin-bottom:6px"><div class="avatar">${esc(s.name.trim().charAt(0))}</div><b style="font-size:18px">${esc(s.name)}</b></div>
+ <div class="mut k-due" style="color:var(--ct);font-weight:700">🙋 ব্যক্তিগত অগ্রিম</div><div class="minis k-due"><div class="mini"><b>${taka(e.adv)}</b>মোট নিয়েছে</div><div class="mini"><b>${taka(e.advRet)}</b>ফেরত</div><div class="mini"><b>${taka(e.advRem)}</b>অবশিষ্ট</div></div>
+ <div class="mut k-buy" style="color:var(--ct);font-weight:700;margin-top:10px">🐟 মাছ কেনার টাকা</div><div class="minis k-buy" style="grid-template-columns:repeat(4,1fr)"><div class="mini"><b>${taka(e.fg)}</b>মোট নিয়েছে</div><div class="mini"><b>${taka(e.spent)}</b>কেনায় খরচ</div><div class="mini"><b>${taka(e.fr)}</b>ফেরত</div><div class="mini"><b>${taka(e.fishRem)}</b>অবশিষ্ট</div></div></div>`).join('')+
+ `<div class="card"><h3 class="sec">${fmtShort(d)} তারিখের লেনদেন</h3>${day.length?day.slice().reverse().map(t=>`<div class="item"><div class="grow"><b>${TXN[t.type][1]} ${esc(staffName(t.empId))}</b><div class="mut">${t.type==='ret'?(t.ref==='adv'?'অগ্রিম ফেরত':'মাছ কেনার টাকা ফেরত'):TXN[t.type][0]}${t.note?' · '+esc(t.note):''}</div></div><div class="amt" style="color:var(--${TXN[t.type][2]}-t)">${t.type==='ret'?'−':'+'}${taka(t.amount)}</div><button class="del" onclick="delEmp('${t.id}')">🗑</button></div>`).join(''):'<div class="empty">এই তারিখে কোনো লেনদেন নেই</div>'}</div>
+ <div class="note">ব্যক্তিগত অগ্রিম ও মাছ কেনার টাকা সম্পূর্ণ আলাদা হিসাব। মাছ কেনার টাকা কেনার ফর্মে “কর্মচারীর কাছে থাকা টাকা” বেছে নিলে নিজে থেকে কমে যায়।</div>`}
+function empSheet(type){const k=TXN[type][2];
+ openSheet(TXN[type][0],`<div class="mut">তারিখ ${fmtDate(state.date)}</div><label>কর্মচারী</label><select id="e_emp">${db.staff.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('')}</select>
+ ${type==='ret'?`<label>কোন টাকার ফেরত</label><select id="e_ref"><option value="adv">ব্যক্তিগত অগ্রিমের ফেরত</option><option value="fish">মাছ কেনার টাকার ফেরত</option></select>`:''}
+ <label>টাকা (৳)</label><input id="e_amt" inputmode="decimal" placeholder="০"><label>নোট (ঐচ্ছিক)</label><input id="e_note">
+ <div class="btnrow"><button class="btn gray" onclick="closeSheet()">বাতিল</button><button class="btn k-${k}" onclick="saveEmp('${type}')">সংরক্ষণ</button></div>`,'k-'+k)}
+function saveEmp(type){const a=num('e_amt');if(!(a>0))return toast('টাকার পরিমাণ লিখুন','err');
+ db.emptx.push({id:uid(),date:state.date,empId:v('e_emp'),type,ref:type==='ret'?v('e_ref'):type,amount:a,note:v('e_note').trim()});closeSheet();commit('সংরক্ষিত ✔')}
+function delEmp(id){ask('এই লেনদেন মুছবেন?',()=>{db.emptx=db.emptx.filter(t=>t.id!==id);commit('মুছে ফেলা হয়েছে')})}
+
+/* ===== বরফের হিসাব ===== */
+function icePage(){const d=state.date,day=db.ice.filter(i=>i.date===d);
+ const inn=sum(day.filter(i=>i.type==='in'),i=>i.qty),cost=sum(day.filter(i=>i.type==='in'),i=>i.qty*i.rate),use=sum(day.filter(i=>i.type==='use'),i=>i.qty);
+ const dates=[...new Set(db.ice.map(i=>i.date))].sort();let run=0;const rows=dates.map(x=>{const a=db.ice.filter(i=>i.date===x);const q=sum(a.filter(i=>i.type==='in'),i=>i.qty),c=sum(a.filter(i=>i.type==='in'),i=>i.qty*i.rate),u=sum(a.filter(i=>i.type==='use'),i=>i.qty);run+=q-u;return{x,q,c,u,run}}).reverse().slice(0,30);
+ return backBar('🧊 বরফের হিসাব','k-ice')+dateBar()+`<div class="k-ice"><div class="card stat"><div class="sl">🧊 ${fmtShort(d)} পর্যন্ত অবশিষ্ট স্টক</div><div class="sv">${bnNum(iceStock(d))} টি</div></div>
+ <div class="grid2"><div class="card stat"><div class="sl">আজ এসেছে</div><div class="sv" style="font-size:22px">${bnNum(inn)} টি</div></div><div class="card stat"><div class="sl">আজ দাম</div><div class="sv" style="font-size:22px">${taka(cost)}</div></div>
+ <div class="card stat"><div class="sl">আজ ব্যবহার</div><div class="sv" style="font-size:22px">${bnNum(use)} টি</div></div><div class="card stat"><div class="sl">আজ শেষে অবশিষ্ট</div><div class="sv" style="font-size:22px">${bnNum(iceStock(d))} টি</div></div></div>
+ <div class="btnrow" style="margin:0 0 12px"><button class="btn" onclick="iceSheet('in')">⬇ বরফ এলো</button><button class="btn line" onclick="iceSheet('use')">⬆ বরফ ব্যবহার</button></div>
+ <div class="card"><h3 class="sec">এই দিনের এন্ট্রি</h3>${day.length?day.map(i=>`<div class="item"><div class="grow"><b>${i.type==='in'?'⬇ বরফ এলো':'⬆ বরফ ব্যবহার'}</b><div class="mut">${bnNum(i.qty)} টি${i.type==='in'?' × '+taka(i.rate)+' = '+taka(i.qty*i.rate):''}${i.note?' · '+esc(i.note):''}</div></div><button class="del" onclick="delIce('${i.id}')">🗑</button></div>`).join(''):'<div class="empty">এই তারিখে কোনো এন্ট্রি নেই</div>'}</div>
+ <div class="card"><h3 class="sec">দিন অনুযায়ী খাতা</h3>${rows.length?`<div class="scroll"><table class="tbl"><tr><th>তারিখ</th><th>এসেছে</th><th>দাম</th><th>ব্যবহার</th><th>অবশিষ্ট</th></tr>${rows.map(r=>`<tr><td>${fmtShort(r.x)}</td><td>${bnNum(r.q)}</td><td>${taka(r.c)}</td><td>${bnNum(r.u)}</td><td><b>${bnNum(r.run)}</b></td></tr>`).join('')}</table></div>`:'<div class="empty">এখনও কোনো বরফের হিসাব নেই</div>'}</div>
+ <div class="note">বরফ কেনার দাম খরচের হিসাবে নিজে থেকে যোগ হয়, আলাদা করে খরচে লিখবেন না।</div></div>`}
+function iceSheet(type){openSheet(type==='in'?'বরফ এলো':'বরফ ব্যবহার',`<div class="mut">তারিখ ${fmtDate(state.date)}</div><label>কতটি বরফ</label><input id="i_qty" inputmode="decimal" placeholder="০" ${type==='in'?'oninput="liveIce()"':''}>
+ ${type==='in'?`<label>প্রতিটির দাম (৳)</label><input id="i_rate" inputmode="decimal" placeholder="০" oninput="liveIce()"><div class="totalbox"><span>মোট দাম</span><b id="i_total">৳০</b></div>`:''}
+ <label>নোট (ঐচ্ছিক)</label><input id="i_note"><div class="btnrow"><button class="btn gray" onclick="closeSheet()">বাতিল</button><button class="btn k-ice" onclick="saveIce('${type}')">সংরক্ষণ</button></div>`,'k-ice')}
+function liveIce(){$('#i_total').textContent=taka(num('i_qty')*num('i_rate'))}
+function saveIce(type){const q=num('i_qty'),r=type==='in'?num('i_rate'):0;if(!(q>0))return toast('বরফের সংখ্যা লিখুন','err');if(type==='in'&&!(r>0))return toast('প্রতিটির দাম লিখুন','err');
+ if(type==='use'&&q>iceStock(state.date))return toast('স্টকের চেয়ে বেশি ব্যবহার! অবশিষ্ট '+bnNum(iceStock(state.date))+' টি','err');
+ db.ice.push({id:uid(),date:state.date,type,qty:q,rate:r,note:v('i_note').trim()});closeSheet();commit('সংরক্ষিত ✔')}
+function delIce(id){ask('এই এন্ট্রি মুছবেন?',()=>{db.ice=db.ice.filter(i=>i.id!==id);commit('মুছে ফেলা হয়েছে')})}
+
+/* ===== আয়-ব্যয় ===== */
+const CATS=[['দোকান ভাড়া','🏪'],['পরিবহন','🚚'],['শ্রমিক খরচ','👷'],['বিদ্যুৎ ও পানি','💡'],['অন্যান্য খরচ','🧾']];
+function expensePage(){const d=state.date,c=calc(d,d),m=d.slice(0,7),mc=calc(m+'-01',m+'-31'),list=db.exp.filter(e=>e.date===d);
+ return backBar('🧾 আয়-ব্যয়ের হিসাব','k-exp')+dateBar()+`<div class="k-exp"><div class="card stat"><div class="sl">${fmtShort(d)} তারিখের মোট খরচ</div><div class="sv">${taka(c.cost)}</div></div>
+ <h3 class="sec">খরচ লিখুন</h3><div class="grid2">${CATS.map(x=>`<button class="tile k-exp" onclick="expSheet('${x[0]}')"><span class="e">${x[1]}</span>${x[0]}</button>`).join('')}</div>
+ <div class="card"><h3 class="sec">এই দিনের খরচ</h3>${[...list.map(e=>`<div class="item"><div class="grow"><b>${esc(e.cat)}</b>${e.note?`<div class="mut">${esc(e.note)}</div>`:''}</div><div class="amt">${taka(e.amount)}</div><button class="del" onclick="delExp('${e.id}')">🗑</button></div>`),
+ c.att>0?`<div class="item"><div class="grow"><b>👷 শ্রমিক (হাজিরা থেকে)</b><div class="mut">নিজে থেকে যোগ হয়েছে</div></div><div class="amt">${taka(c.att)}</div></div>`:'',
+ c.iceCost>0?`<div class="item"><div class="grow"><b>🧊 বরফ ক্রয়</b><div class="mut">নিজে থেকে যোগ হয়েছে</div></div><div class="amt">${taka(c.iceCost)}</div></div>`:''].join('')||'<div class="empty">এই তারিখে কোনো খরচ নেই</div>'}</div>
+ <div class="card"><h3 class="sec">${MONTHS[parse(d).getMonth()]} মাসের খরচ</h3>${CATS.map(x=>`<div class="kv"><span>${x[1]} ${x[0]}</span><b>${taka(mc.expBy[x[0]]||0)}</b></div>`).join('')}
+ <div class="kv"><span>👷 শ্রমিক (হাজিরা)</span><b>${taka(mc.att)}</b></div><div class="kv"><span>🧊 বরফ ক্রয়</span><b>${taka(mc.iceCost)}</b></div><div class="kv tot"><span>মোট</span><b>${taka(mc.cost)}</b></div></div></div>`}
+function expSheet(cat){openSheet('খরচ লিখুন',`<div class="mut">তারিখ ${fmtDate(state.date)}</div><label>খরচের ধরন</label><select id="x_cat">${CATS.map(x=>`<option ${x[0]===cat?'selected':''}>${x[0]}</option>`).join('')}</select>
+ <label>টাকা (৳)</label><input id="x_amt" inputmode="decimal" placeholder="০"><label>নোট (ঐচ্ছিক)</label><input id="x_note">
+ <div class="btnrow"><button class="btn gray" onclick="closeSheet()">বাতিল</button><button class="btn k-exp" onclick="saveExp()">সংরক্ষণ</button></div>`,'k-exp')}
+function saveExp(){const a=num('x_amt');if(!(a>0))return toast('টাকার পরিমাণ লিখুন','err');db.exp.push({id:uid(),date:state.date,cat:v('x_cat'),amount:a,note:v('x_note').trim()});closeSheet();commit('খরচ সংরক্ষিত ✔')}
+function delExp(id){ask('এই খরচ মুছবেন?',()=>{db.exp=db.exp.filter(e=>e.id!==id);commit('মুছে ফেলা হয়েছে')})}
+
+/* ===== রিপোর্ট ===== */
+function repRange(){const t=state.repTab;
+ if(t==='day')return{from:state.repDate,to:state.repDate,label:fmtDate(state.repDate)+' · '+fmtDay(state.repDate)};
+ if(t==='week'){const f=addDays(state.repDate,-((parse(state.repDate).getDay()+1)%7));const to=addDays(f,6);return{from:f,to,label:fmtShort(f)+' থেকে '+fmtDate(to)}}
+ const[y,m]=state.repMonth.split('-').map(Number);return{from:state.repMonth+'-01',to:state.repMonth+'-'+pad(new Date(y,m,0).getDate()),label:MONTHS[m-1]+' '+bnd(y)}}
+function repShift(n){const t=state.repTab;
+ if(t==='day')state.repDate=addDays(state.repDate,n);else if(t==='week')state.repDate=addDays(state.repDate,7*n);
+ else{const[y,m]=state.repMonth.split('-').map(Number);const d=new Date(y,m-1+n,1);state.repMonth=d.getFullYear()+'-'+pad(d.getMonth()+1)}render()}
+function reportPage(){const t=state.repTab,r=repRange(),c=calc(r.from,r.to),multi=t!=='day';
+ const names={};db.fish.filter(x=>x.date>=r.from&&x.date<=r.to).forEach(x=>{const n=names[x.name]||(names[x.name]={bk:0,ba:0,sk:0,sa:0});if(x.type==='buy'){n.bk+=x.kg;n.ba+=x.kg*x.rate}else{n.sk+=x.kg;n.sa+=x.kg*x.rate}});
+ let days='';if(multi){const list=[];for(let d=r.from;d<=r.to;d=addDays(d,1)){const k=calc(d,d);if(k.sell||k.buy||k.cost)list.push({d,k})}
+  const mx=Math.max(1,...list.map(x=>Math.max(x.k.sell,x.k.buy)));
+  days=`<div class="card"><h3 class="sec">দিন অনুযায়ী</h3>${list.length?list.map(({d,k})=>`<div class="dayrow"><div class="t"><span>${fmtShort(d)} · ${fmtDay(d)}</span><span style="color:var(--${k.profit<0?'exp':'sell'}-t)">${k.profit<0?'ক্ষতি ':'লাভ '}${taka(Math.abs(k.profit))}</span></div>
+  <div class="mut">বিক্রি ${taka(k.sell)} · কেনা ${taka(k.buy)} · খরচ ${taka(k.cost)}</div><div class="k-sell" style="margin-top:4px"><div class="bar" style="width:${k.sell/mx*100}%"></div></div><div class="k-buy" style="margin-top:3px"><div class="bar" style="width:${k.buy/mx*100}%"></div></div></div>`).join(''):'<div class="empty">এই সময়ে কোনো হিসাব নেই</div>'}<div class="note">সবুজ দাগ = বিক্রি, নীল দাগ = কেনা</div></div>`}
+ const kvs=a=>a.map(x=>`<div class="kv"><span>${x[0]}</span><b>${x[1]}</b></div>`).join('');
+ return `<div class="seg k-rep"><button class="${t==='day'?'on':''}" onclick="go('report',{repTab:'day'})">📅 দৈনিক</button><button class="${t==='week'?'on':''}" onclick="go('report',{repTab:'week'})">🗓️ সাপ্তাহিক</button><button class="${t==='month'?'on':''}" onclick="go('report',{repTab:'month'})">📆 মাসিক</button></div>
+ <div class="datebar"><button class="nb" onclick="repShift(-1)">‹</button>${t==='month'?`<div class="dpick"><span>${r.label}</span></div>`:`<label class="dpick"><span>${r.label}${t==='week'?'<small>সপ্তাহ (শনি–শুক্র)</small>':''}</span><input type="date" value="${state.repDate}" onchange="if(this.value){state.repDate=this.value;render()}"></label>`}<button class="nb" onclick="repShift(1)">›</button></div>
+ <div class="grid2"><div class="k-buy">${stat('buy','🛒','মোট কেনা',taka(c.buy),bnNum(c.buyKg)+' কেজি')}</div><div class="k-sell">${stat('sell','💵','মোট বিক্রি',taka(c.sell),bnNum(c.sellKg)+' কেজি')}</div>
+ ${stat('exp','🧾','মোট খরচ',taka(c.cost))}${stat(c.profit<0?'exp':'green',c.profit<0?'📉':'📈',c.profit<0?'ক্ষতি':'লাভ',taka(Math.abs(c.profit)),'বিক্রি − কেনা − খরচ')}</div>
+ <div class="card"><h3 class="sec">💵 বিক্রি ও বাকি</h3>${kvs([['নগদ পেয়েছি',taka(c.recv)],['বাকি রেখেছি',taka(c.due)],['পুরনো বাকি আদায়',taka(c.collect)]])}</div>
+ <div class="card"><h3 class="sec">🧾 খরচের বিবরণ</h3>${kvs([...CATS.map(x=>[x[1]+' '+x[0],taka(c.expBy[x[0]]||0)]),['👷 শ্রমিক (হাজিরা থেকে)',taka(c.att)],['🧊 বরফ ক্রয়',taka(c.iceCost)]])}<div class="kv tot"><span>মোট খরচ</span><b>${taka(c.cost)}</b></div></div>
+ <div class="card"><h3 class="sec">💵 নগদ টাকার প্রবাহ</h3>${kvs([['আসা',taka(c.cashIn)],['গেছে',taka(c.cashOut)]])}<div class="kv tot"><span>নগদ (আসা − গেছে)</span><b>${taka(c.cash)}</b></div></div>
+ <div class="card" style="display:none"><h3 class="sec">🐟 মাছ অনুযায়ী</h3>${Object.keys(names).length?`<div class="scroll"><table class="tbl"><tr><th>মাছ</th><th>কেনা কেজি</th><th>কেনা ৳</th><th>বিক্রি কেজি</th><th>বিক্রি ৳</th></tr>${Object.keys(names).map(n=>{const z=names[n];return `<tr><td>${esc(n)}</td><td>${bnNum(z.bk)}</td><td>${taka(z.ba)}</td><td>${bnNum(z.sk)}</td><td>${taka(z.sa)}</td></tr>`}).join('')}</table></div>`:'<div class="empty">কোনো এন্ট্রি নেই</div>'}</div>`+days}
+
+/* ===== প্রোফাইল ও ব্যাকআপ ===== */
+function profilePage(){const p=db.profile,kb=(JSON.stringify(db).length/1024).toFixed(1);
+ return backBar('⚙️ সেটিং ও ব্যাকআপ','k-green')+`<div class="card k-gold"><h3 class="sec">💾 ডেটা ব্যাকআপ সংরক্ষণ</h3><div class="mut" style="margin-bottom:10px">সর্বশেষ ব্যাকআপ: <b>${db.meta.lastBackup?fmtDate(db.meta.lastBackup):'এখনও নেওয়া হয়নি'}</b></div><div class="stack"><button class="btn gold" onclick="doBackup()">⬇ ব্যাকআপ ফাইল সংরক্ষণ করুন</button><button class="btn gray" onclick="copyBackup()">📋 ব্যাকআপ কপি করুন</button></div></div>`+`<div class="card k-green"><h3 class="sec">🏪 দোকানের তথ্য</h3>
+ <label>দোকানের নাম</label><input id="pf_shop" value="${esc(p.shop)}"><label>ব্যবহারকারীর নাম</label><input id="pf_owner" value="${esc(p.owner)}" placeholder="আপনার নাম">
+ <label>মোবাইল নম্বর</label><input id="pf_phone" inputmode="tel" value="${esc(p.phone)}" placeholder="০১৭…"><label>ঠিকানা</label><input id="pf_addr" value="${esc(p.addr)}" placeholder="দোকানের ঠিকানা">
+ <div style="margin-top:12px"><button class="btn" onclick="saveProfile()">✔ সংরক্ষণ করুন</button></div></div>
+ <div class="card k-green"><h3 class="sec">📱 ডেটা সংরক্ষণের সেটিংস</h3>
+ <div class="kv"><span>সংরক্ষণের জায়গা</span><b>ফোনের ব্রাউজার মেমোরি</b></div><div class="kv"><span>অবস্থা</span><b>${memOnly?'⚠️ সংরক্ষণ বন্ধ':'✅ চালু'}</b></div>
+ <div class="kv"><span>ডেটার আকার</span><b>${bnd(kb)} KB</b></div><div class="kv"><span>সর্বশেষ ব্যাকআপ</span><b>${db.meta.lastBackup?fmtDate(db.meta.lastBackup):'নেওয়া হয়নি'}</b></div>
+ <div class="note">ডেটা এই ফোনের ব্রাউজারেই থাকে, ইন্টারনেট ছাড়াই কাজ করে। ব্রাউজারের “ক্যাশ/সাইট ডেটা” মুছলে ডেটা চলে যাবে — তাই নিয়মিত ব্যাকআপ নিন।</div></div>
+ <div class="card k-gold"><h3 class="sec">♻️ ব্যাকআপ থেকে ফিরিয়ে আনুন</h3>
+ <label>ব্যাকআপ ফাইল থেকে ফিরিয়ে আনুন</label><input type="file" id="rf" accept=".json,application/json,text/plain" onchange="restoreFile(this)" style="height:auto;padding:12px">
+ <div style="margin-top:10px"><button class="btn gray sm" onclick="pasteSheet()">📥 কপি করা ব্যাকআপ বসান</button></div></div>
+ <div class="card"><h3 class="sec">🧪 অন্যান্য</h3><div class="stack"><button class="btn line k-buy sm" onclick="ask('বর্তমান সব ডেটা মুছে নমুনা ডেটা বসবে। চালিয়ে যাবেন?',demo,'হ্যাঁ, নমুনা দিন')">নমুনা ডেটা দিয়ে অ্যাপ দেখুন</button>
+ <button class="btn red sm" onclick="ask('সব ডেটা চিরতরে মুছে যাবে! আগে ব্যাকআপ নিয়েছেন তো?',wipe,'হ্যাঁ, সব মুছুন')">🗑 সব ডেটা মুছুন</button></div></div>`}
+function saveProfile(){db.profile={shop:v('pf_shop').trim()||'মেসার্স আলমগীর এন্টারপ্রাইজ',owner:v('pf_owner').trim(),phone:toLat(v('pf_phone')).trim(),addr:v('pf_addr').trim()};commit('প্রোফাইল সংরক্ষিত ✔')}
+const backupJSON=()=>JSON.stringify({app:'alamgir-enterprise',version:1,exportedAt:new Date().toISOString(),data:db},null,1);
+function markBackup(){db.meta.lastBackup=todayStr();save();if(state.page==='profile')render()}
+async function doBackup(){let ok=false;
+ try{const dl=window.claude&&await window.claude.use('downloads');if(dl){await dl.save({filename:'alamgir-backup-'+todayStr()+'.json',data:backupJSON()});ok=true}}catch(e){if(e&&e.code==='declined')return}
+ if(ok){markBackup();toast('ব্যাকআপ সংরক্ষিত ✔')}else copyBackup()}
+async function copyBackup(){const t=backupJSON();
+ try{await navigator.clipboard.writeText(t);markBackup();toast('ব্যাকআপ কপি হয়েছে — নোটস/হোয়াটসঅ্যাপে সেভ করুন ✔')}
+ catch(e){openSheet('ব্যাকআপ লেখা',`<div class="mut">নিচের লেখা সব সিলেক্ট করে কপি করে রাখুন।</div><textarea id="bk_txt" readonly onfocus="this.select()">${esc(t)}</textarea><div style="margin-top:12px"><button class="btn" onclick="markBackup();closeSheet()">কপি করেছি</button></div>`)}}
+function pasteSheet(){openSheet('ব্যাকআপ থেকে ফেরান',`<label>ব্যাকআপের লেখা এখানে বসান</label><textarea id="rs_txt" placeholder="এখানে পেস্ট করুন"></textarea><div class="btnrow"><button class="btn gray" onclick="closeSheet()">বাতিল</button><button class="btn" onclick="restoreText(v('rs_txt'))">ফিরিয়ে আনুন</button></div>`)}
+function restoreFile(el){const f=el.files&&el.files[0];if(!f)return;const r=new FileReader();r.onload=()=>restoreText(String(r.result));r.readAsText(f)}
+function restoreText(txt){let o;try{o=JSON.parse(txt)}catch(e){return toast('ব্যাকআপ পড়া যায়নি','err')}
+ const d=o&&o.data?o.data:o;if(!d||!Array.isArray(d.fish)||!Array.isArray(d.staff))return toast('এটি সঠিক ব্যাকআপ নয়','err');
+ ask('বর্তমান ডেটা মুছে ব্যাকআপের ডেটা বসবে। চালিয়ে যাবেন?',()=>{db=Object.assign(defaults(),d);commit('ডেটা ফিরে এসেছে ✔')},'হ্যাঁ, ফিরিয়ে আনুন')}
+function wipe(){db=defaults();state.date=todayStr();commit('সব ডেটা মুছে ফেলা হয়েছে')}
+function demo(){const t=todayStr();db=defaults();db.profile.owner='আলমগীর হোসেন';
+ db.staff.forEach((s,i)=>{s.name=['রফিক','জামাল','সালাম','বাবুল','মোস্তফা','নূর'][i];s.phone='০১৭১১০০০'+bnd(100+i)});
+ db.customers=[{id:'c1',name:'রহিম মিয়া',phone:'01711000001'},{id:'c2',name:'করিম ফিশ স্টোর',phone:'01811000002'},{id:'c3',name:'সুমন হোটেল',phone:'01911000003'}];
+ const F=[['ইলিশ',900,'চাঁদপুর ঘাট'],['রুই',300,'আড়ত'],['কাতলা',280,'আড়ত'],['পাঙ্গাস',150,'ময়মনসিংহ'],['তেলাপিয়া',140,'আড়ত']];
+ for(let i=0;i<5;i++){const d=addDays(t,-i);F.forEach((f,j)=>{const kg=18+((i*7+j*5)%22);
+  db.fish.push({id:uid(),date:d,type:'buy',name:'',kg,rate:Math.round(f[1]*.76),from:f[2],payer:j===1&&i===0?'s2':'',received:0,custId:''});
+  const sk=kg-2,sr=Math.round(f[1]*.97),tot=sk*sr,cu=j%3===0?'c'+(1+(i+j)%3):'';const rc=cu?Math.round(tot*.4):tot;
+  db.fish.push({id:uid(),date:d,type:'sell',name:'',kg:sk,rate:sr,from:'',payer:'',received:rc,custId:cu})});
+  db.ice.push({id:uid(),date:d,type:'in',qty:20,rate:35,note:''});db.ice.push({id:uid(),date:d,type:'use',qty:17,rate:0,note:''});
+  db.exp.push({id:uid(),date:d,cat:'পরিবহন',amount:600+i*50,note:''});if(i%2===0)db.exp.push({id:uid(),date:d,cat:'দোকান ভাড়া',amount:500,note:''});
+  db.staff.forEach((s,k)=>{db.att[d+'|'+s.id]={s:(k+i)%7===0?'a':((k+i)%5===0?'h':'p'),t:(k%2?200:0)}})}
+ db.ledger.push({id:uid(),date:addDays(t,-2),custId:'c1',type:'pay',amount:3000,note:'নগদ'});
+ db.emptx.push({id:uid(),date:addDays(t,-3),empId:'s1',type:'adv',ref:'adv',amount:3000,note:'ঈদ খরচ'},{id:uid(),date:addDays(t,-1),empId:'s2',type:'fish',ref:'fish',amount:30000,note:''},{id:uid(),date:t,empId:'s2',type:'ret',ref:'fish',amount:1000,note:''});
+ state.date=t;commit('নমুনা ডেটা বসানো হয়েছে')}
+
+/* ===== শুরু ===== */
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
+render();
+</script>
+</body>
+</html>
