@@ -187,8 +187,21 @@ function defaults(){return{profile:{shop:'মেসার্স আলমগী�
 staff:[1,2,3,4,5,6].map(i=>({id:'s'+i,name:'কর্মচারী '+bnd(i),phone:''})),att:{},emptx:[],ice:[],exp:[],meta:{lastBackup:''}}}
 function load(){try{const r=localStorage.getItem(KEY);if(r)return Object.assign(defaults(),JSON.parse(r))}catch(e){memOnly=true}return defaults()}
 let db=load();
+let lastStamp=(db.meta&&db.meta.updatedAt)||0;
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){memOnly=true}}
-function save(){db.meta=db.meta||{};db.meta.updatedAt=Date.now();persist();if(window.cloudPush)window.cloudPush()}
+/* দুই কপি (অ্যাপ + ব্রাউজার ট্যাব) মেলানো: একই id-র এন্ট্রি হলে 'a' (আমার) জেতে, বাকিগুলো দুই দিক থেকেই থাকে */
+function mergeDb(a,b){const out=Object.assign({},b,a);
+ ['fish','customers','ledger','emptx','ice','exp','staff'].forEach(k=>{const x=Array.isArray(a[k])?a[k]:[],y=Array.isArray(b[k])?b[k]:[];const ids=new Set(x.map(i=>i&&i.id));out[k]=x.concat(y.filter(i=>i&&(i.id?!ids.has(i.id):!x.some(j=>JSON.stringify(j)===JSON.stringify(i)))))});
+ out.att=Object.assign({},b.att||{},a.att||{});out.profile=Object.assign({},b.profile||{},a.profile||{});out.meta=Object.assign({},b.meta||{},a.meta||{});return out}
+function readStored(){try{const r=localStorage.getItem(KEY);return r?JSON.parse(r):null}catch(e){return null}}
+function save(){db.meta=db.meta||{};
+ const o=readStored();const os=(o&&o.meta&&o.meta.updatedAt)||0;
+ if(o&&os>lastStamp){db=Object.assign(defaults(),mergeDb(db,o));db.meta=db.meta||{}}
+ db.meta.updatedAt=Math.max(Date.now(),os+1);lastStamp=db.meta.updatedAt;persist();if(window.cloudPush)window.cloudPush()}
+function adoptStored(){const o=readStored();const s=(o&&o.meta&&o.meta.updatedAt)||0;if(o&&s>((db.meta&&db.meta.updatedAt)||0)){db=Object.assign(defaults(),o);lastStamp=s;render();return true}return false}
+window.addEventListener('storage',e=>{if(e.key===KEY)adoptStored()});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')adoptStored()});
+window.addEventListener('pageshow',()=>adoptStored());
 
 /* ===== সহায়ক ===== */
 const $=s=>document.querySelector(s);
@@ -588,7 +601,8 @@ function localHasData(){return !!(db.fish.length||db.customers.length||db.ledger
 function cloudSnapshot(){db.meta=db.meta||{};if(!db.meta.updatedAt){db.meta.updatedAt=Date.now();persist()}return{json:JSON.stringify(db),t:db.meta.updatedAt}}
 function localStamp(){return(db.meta&&db.meta.updatedAt)||0}
 function applyRemote(d){if(localHasData()){try{localStorage.setItem(KEY+'_prev',JSON.stringify(db))}catch(e){}}
- db=Object.assign(defaults(),d);persist();render()}
+ db=Object.assign(defaults(),d);lastStamp=(db.meta&&db.meta.updatedAt)||0;persist();render()}
+function applyMerged(cloud){db=Object.assign(defaults(),mergeDb(db,cloud));db.meta=db.meta||{};db.meta.updatedAt=Math.max(Date.now(),localStamp()+1);lastStamp=db.meta.updatedAt;persist();render()}
 function lgEye(){const i=document.getElementById('lgPass'),b=document.getElementById('lgEyeBtn');const h=i.type==='password';i.type=h?'text':'password';b.textContent=h?'লুকান':'দেখান'}
 function lgSkip(){document.getElementById('lg').style.display='none'}
 function cloudCard(){const C=window.CLOUD||{};
@@ -620,6 +634,9 @@ const app=initializeApp(firebaseConfig);
 const auth=getAuth(app);
 const fs=initializeFirestore(app,{experimentalAutoDetectLongPolling:true});
 let ref=null,unsub=null,pushT=null;
+const BK=KEY+'_base';
+const getBase=()=>Number(localStorage.getItem(BK))||0;
+const setBase=v=>{try{localStorage.setItem(BK,String(v))}catch(e){}};
 const $g=id=>document.getElementById(id);
 
 function setStatus(st,err){
@@ -637,7 +654,7 @@ async function pushNow(){
   if(!ref)return;
   const s=cloudSnapshot();
   if(new Blob([s.json]).size>950000)setStatus('err','ডেটা ১ MB সীমার কাছে পৌঁছেছে। পুরোনো ডেটা ব্যাকআপ নিয়ে পরিষ্কার করুন।');
-  try{await setDoc(ref,{data:s.json,updatedAt:s.t});if(C.state!=='err'||!C.err.startsWith('ডেটা ১ MB'))setStatus('ok')}
+  try{await setDoc(ref,{data:s.json,updatedAt:s.t});setBase(s.t);if(C.state!=='err'||!C.err.startsWith('ডেটা ১ MB'))setStatus('ok')}
   catch(e){setStatus('err',errText(e))}
 }
 window.cloudPush=()=>{if(!ref)return;clearTimeout(pushT);setStatus('pending');pushT=setTimeout(pushNow,1200)};
@@ -648,7 +665,11 @@ function listen(){
   unsub=onSnapshot(ref,snap=>{
     if(!snap.exists()||snap.metadata.hasPendingWrites)return;
     const cd=snap.data();
-    if((cd.updatedAt||0)>localStamp()){applyRemote(JSON.parse(cd.data));toast('অন্য ফোনের নতুন ডেটা এসেছে ✔')}
+    const cu=cd.updatedAt||0,lu=localStamp();
+    if(cu>lu){
+      if(lu>getBase()&&getBase()>0){applyMerged(JSON.parse(cd.data));setBase(cu);pushNow();toast('দুই কপির হিসাব মিলিয়ে নেওয়া হয়েছে ✔')}
+      else{applyRemote(JSON.parse(cd.data));setBase(cu);toast('অন্য ফোনের নতুন ডেটা এসেছে ✔')}
+    }
   },e=>setStatus('err',errText(e)));
 }
 async function startSync(user){
@@ -663,8 +684,15 @@ async function startSync(user){
         if(confirm('ক্লাউডে আগের হিসাব আছে, আবার এই ফোনেও আলাদা হিসাব আছে।\n\nOK চাপলে ক্লাউডের হিসাব আসবে (এই ফোনের আগের হিসাব আলাদা কপিতে থাকবে)।\nCancel চাপলে এই ফোনের হিসাব ক্লাউডে উঠবে।')){applyRemote(JSON.parse(cd.data))}
         else{await pushNow()}
       }
-      else if(cu>lu){applyRemote(JSON.parse(cd.data))}
-      else if(lu>cu){await pushNow()}
+      else if(cu>lu){
+        if(lu>getBase()&&getBase()>0){applyMerged(JSON.parse(cd.data));await pushNow()}
+        else{applyRemote(JSON.parse(cd.data));setBase(cu)}
+      }
+      else if(lu>cu){
+        if(cu>getBase()){applyMerged(JSON.parse(cd.data));await pushNow()}
+        else{await pushNow()}
+      }
+      else{setBase(cu)}
     }
     listen();
     if(C.state!=='err')setStatus('ok');
