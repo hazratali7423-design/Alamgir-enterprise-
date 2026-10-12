@@ -77,7 +77,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:3px solid v
 .totalbox{margin-top:12px;background:var(--g1);border-radius:14px;padding:12px 14px;font-weight:700;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .totalbox b{color:var(--ct);font:400 22px 'Tiro Bangla',serif}
 .seg{display:flex;gap:8px;margin-bottom:12px}
-.seg button{flex:1;min-height:54px;border-radius:14px;border:2px solid var(--line);background:var(--card);font:700 16px 'Hind Siliguri';padding:4px}
+.seg button{flex:1;min-width:0;min-height:58px;border-radius:14px;border:2px solid var(--line);background:var(--card);font:700 15px/1.25 'Hind Siliguri';padding:4px 2px}
 .seg button.on{background:var(--c);border-color:var(--c);color:#fff}
 .item{display:flex;gap:10px;align-items:center;padding:12px 0;border-bottom:1px dashed var(--line)}
 .item:last-child{border-bottom:0}
@@ -246,7 +246,7 @@ function empStats(id,upTo){const T=db.emptx.filter(t=>t.empId===id&&t.date<=upTo
 const iceStock=d=>sum(db.ice.filter(i=>i.date<=d),i=>i.type==='in'?i.qty:-i.qty);
 
 /* ===== অবস্থা ও নেভিগেশন ===== */
-const state={page:'home',date:todayStr(),txnTab:'buy',staffTab:'att',repTab:'day',repDate:todayStr(),repMonth:todayStr().slice(0,7),custQ:'',lastFrom:''};
+const state={page:'home',date:todayStr(),txnTab:'buy',staffTab:'att',repTab:'day',repDate:todayStr(),repMonth:todayStr().slice(0,7),repYear:todayStr().slice(0,4),custQ:'',lastFrom:''};
 const NAV=[['home','🏠','হোম'],['txn','🐟','লেনদেন'],['baki','💰','বাকি খাতা'],['staff','👨‍💼','কর্মচারী'],['report','📊','রিপোর্ট']];
 const NAVMAP={ice:'home',expense:'home',profile:'home'};
 function go(p,o){Object.assign(state,o||{});state.page=p;render();window.scrollTo(0,0)}
@@ -504,22 +504,31 @@ function saveExp(){const a=num('x_amt');if(!(a>0))return toast('টাকার 
 function delExp(id){ask('এই খরচ মুছবেন?',()=>{db.exp=db.exp.filter(e=>e.id!==id);commit('মুছে ফেলা হয়েছে')})}
 
 /* ===== রিপোর্ট ===== */
+/* ===== বার্ষিক: মাস অনুযায়ী ===== */
+function yearRows(r){const y=Number(state.repYear),list=[];
+ for(let m=1;m<=12;m++){const f=y+'-'+pad(m)+'-01',t=y+'-'+pad(m)+'-'+pad(new Date(y,m,0).getDate());const k=calc(f,t);if(k.sell||k.buy||k.cost)list.push({m,k})}
+ const mx=Math.max(1,...list.map(x=>Math.max(x.k.sell,x.k.buy)));
+ const best=list.length?list.reduce((a,b)=>b.k.profit>a.k.profit?b:a):null;
+ return`<div class="card"><h3 class="sec">মাস অনুযায়ী</h3>${list.length?list.map(({m,k})=>`<div class="dayrow"><div class="t"><span>${MONTHS[m-1]}</span><span style="color:var(--${k.profit<0?'exp':'sell'}-t)">${k.profit<0?'ক্ষতি ':'লাভ '}${taka(Math.abs(k.profit))}</span></div>
+ <div class="mut">বিক্রি ${taka(k.sell)} · কেনা ${taka(k.buy)} · খরচ ${taka(k.cost)}</div><div class="k-sell" style="margin-top:4px"><div class="bar" style="width:${k.sell/mx*100}%"></div></div><div class="k-buy" style="margin-top:3px"><div class="bar" style="width:${k.buy/mx*100}%"></div></div></div>`).join(''):'<div class="empty">এই বছরে কোনো হিসাব নেই</div>'}${best&&best.k.profit>0?`<div class="kv tot"><span>সবচেয়ে বেশি লাভ</span><b>${MONTHS[best.m-1]} · ${taka(best.k.profit)}</b></div>`:''}<div class="note">সবুজ দাগ = বিক্রি, নীল দাগ = কেনা</div></div>`}
 function repRange(){const t=state.repTab;
  if(t==='day')return{from:state.repDate,to:state.repDate,label:fmtDate(state.repDate)+' · '+fmtDay(state.repDate)};
  if(t==='week'){const f=addDays(state.repDate,-((parse(state.repDate).getDay()+1)%7));const to=addDays(f,6);return{from:f,to,label:fmtShort(f)+' থেকে '+fmtDate(to)}}
+ if(t==='year')return{from:state.repYear+'-01-01',to:state.repYear+'-12-31',label:bnd(state.repYear)+' সাল'};
  const[y,m]=state.repMonth.split('-').map(Number);return{from:state.repMonth+'-01',to:state.repMonth+'-'+pad(new Date(y,m,0).getDate()),label:MONTHS[m-1]+' '+bnd(y)}}
 function repShift(n){const t=state.repTab;
  if(t==='day')state.repDate=addDays(state.repDate,n);else if(t==='week')state.repDate=addDays(state.repDate,7*n);
+ else if(t==='year')state.repYear=String(Number(state.repYear)+n);
  else{const[y,m]=state.repMonth.split('-').map(Number);const d=new Date(y,m-1+n,1);state.repMonth=d.getFullYear()+'-'+pad(d.getMonth()+1)}render()}
 function reportPage(){const t=state.repTab,r=repRange(),c=calc(r.from,r.to),multi=t!=='day';
  const names={};db.fish.filter(x=>x.date>=r.from&&x.date<=r.to).forEach(x=>{const n=names[x.name]||(names[x.name]={bk:0,ba:0,sk:0,sa:0});if(x.type==='buy'){n.bk+=x.kg;n.ba+=x.kg*x.rate}else{n.sk+=x.kg;n.sa+=x.kg*x.rate}});
- let days='';if(multi){const list=[];for(let d=r.from;d<=r.to;d=addDays(d,1)){const k=calc(d,d);if(k.sell||k.buy||k.cost)list.push({d,k})}
+ let days='';if(t==='year'){days=yearRows(r)}else if(multi){const list=[];for(let d=r.from;d<=r.to;d=addDays(d,1)){const k=calc(d,d);if(k.sell||k.buy||k.cost)list.push({d,k})}
   const mx=Math.max(1,...list.map(x=>Math.max(x.k.sell,x.k.buy)));
   days=`<div class="card"><h3 class="sec">দিন অনুযায়ী</h3>${list.length?list.map(({d,k})=>`<div class="dayrow"><div class="t"><span>${fmtShort(d)} · ${fmtDay(d)}</span><span style="color:var(--${k.profit<0?'exp':'sell'}-t)">${k.profit<0?'ক্ষতি ':'লাভ '}${taka(Math.abs(k.profit))}</span></div>
   <div class="mut">বিক্রি ${taka(k.sell)} · কেনা ${taka(k.buy)} · খরচ ${taka(k.cost)}</div><div class="k-sell" style="margin-top:4px"><div class="bar" style="width:${k.sell/mx*100}%"></div></div><div class="k-buy" style="margin-top:3px"><div class="bar" style="width:${k.buy/mx*100}%"></div></div></div>`).join(''):'<div class="empty">এই সময়ে কোনো হিসাব নেই</div>'}<div class="note">সবুজ দাগ = বিক্রি, নীল দাগ = কেনা</div></div>`}
  const kvs=a=>a.map(x=>`<div class="kv"><span>${x[0]}</span><b>${x[1]}</b></div>`).join('');
- return `<div class="seg k-rep"><button class="${t==='day'?'on':''}" onclick="go('report',{repTab:'day'})">📅 দৈনিক</button><button class="${t==='week'?'on':''}" onclick="go('report',{repTab:'week'})">🗓️ সাপ্তাহিক</button><button class="${t==='month'?'on':''}" onclick="go('report',{repTab:'month'})">📆 মাসিক</button></div>
- <div class="datebar"><button class="nb" onclick="repShift(-1)">‹</button>${t==='month'?`<div class="dpick"><span>${r.label}</span></div>`:`<label class="dpick"><span>${r.label}${t==='week'?'<small>সপ্তাহ (শনি–শুক্র)</small>':''}</span><input type="date" value="${state.repDate}" onchange="if(this.value){state.repDate=this.value;render()}"></label>`}<button class="nb" onclick="repShift(1)">›</button></div>
+ return `<div class="seg k-rep"><button class="${t==='day'?'on':''}" onclick="go('report',{repTab:'day'})">📅<br>দৈনিক</button><button class="${t==='week'?'on':''}" onclick="go('report',{repTab:'week'})">🗓️<br>সাপ্তাহিক</button><button class="${t==='month'?'on':''}" onclick="go('report',{repTab:'month'})">📆<br>মাসিক</button><button class="${t==='year'?'on':''}" onclick="go('report',{repTab:'year'})">📖<br>বার্ষিক</button></div>
+ <div class="datebar"><button class="nb" onclick="repShift(-1)">‹</button>${(t==='month'||t==='year')?`<div class="dpick"><span>${r.label}</span></div>`:`<label class="dpick"><span>${r.label}${t==='week'?'<small>সপ্তাহ (শনি–শুক্র)</small>':''}</span><input type="date" value="${state.repDate}" onchange="if(this.value){state.repDate=this.value;render()}"></label>`}<button class="nb" onclick="repShift(1)">›</button></div>
  <div class="grid2"><div class="k-buy">${stat('buy','🛒','মোট কেনা',taka(c.buy),bnNum(c.buyKg)+' কেজি')}</div><div class="k-sell">${stat('sell','💵','মোট বিক্রি',taka(c.sell),bnNum(c.sellKg)+' কেজি')}</div>
  ${stat('exp','🧾','মোট খরচ',taka(c.cost))}${stat(c.profit<0?'exp':'green',c.profit<0?'📉':'📈',c.profit<0?'ক্ষতি':'লাভ',taka(Math.abs(c.profit)),'বিক্রি − কেনা − খরচ')}</div>
  <div class="card"><h3 class="sec">💵 বিক্রি ও বাকি</h3>${kvs([['নগদ পেয়েছি',taka(c.recv)],['বাকি রেখেছি',taka(c.due)],['পুরনো বাকি আদায়',taka(c.collect)]])}</div>
