@@ -130,6 +130,20 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:3px solid v
 .note{font-size:13px;color:var(--mut);margin-top:8px}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 @media(max-width:360px){.tiles{grid-template-columns:repeat(2,1fr)}.sv{font-size:22px}}
+
+/* ===== লগইন / ক্লাউড ===== */
+#lg{position:fixed;inset:0;z-index:200;background:var(--bg);display:flex;flex-direction:column;overflow-y:auto}
+#lg .lg-top{background:linear-gradient(135deg,var(--g9),var(--g8));border-bottom:3px solid var(--gold);color:#fff;padding:calc(28px + env(safe-area-inset-top,0px)) 20px 24px;text-align:center}
+#lg .lg-top h1{font:400 26px/1.3 'Tiro Bangla',serif;margin:0;color:var(--gold-l)}
+#lg .lg-top p{margin:6px 0 0;font-size:15px;opacity:.85}
+#lg .lg-body{width:100%;max-width:420px;margin:0 auto;padding:20px 16px 32px}
+#lg label{display:block;font-weight:600;font-size:15px;color:var(--mut);margin:14px 0 6px}
+#lg .lg-pw{position:relative}
+#lg .lg-pw input{padding-right:84px}
+#lg .lg-eye{position:absolute;right:6px;top:6px;height:42px;padding:0 12px;border:0;border-radius:10px;background:var(--g1);color:var(--ink);font:600 15px 'Hind Siliguri'}
+#lg .lg-err{margin-top:14px;padding:10px 12px;border-radius:12px;background:#FBE9E7;color:#9B2C20;font-weight:600;font-size:15px;display:none}
+#lg .lg-busy{padding:48px 16px;text-align:center;color:var(--mut);font-size:18px}
+#lg .btn{margin-top:18px}
 </style>
 </head>
 <body>
@@ -144,6 +158,21 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:3px solid v
 <div class="sheet" id="sheet" role="dialog" aria-modal="true"><div class="grab"></div><h2 id="sheetTitle"></h2><div id="sheetBody"></div></div>
 <div class="toast" id="toast" role="status"></div>
 
+<div id="lg" role="dialog" aria-modal="true" aria-label="লগইন">
+ <div class="lg-top"><h1>মেসার্স আলমগীর এন্টারপ্রাইজ</h1><p>সব ফোনে একই হিসাব দেখতে লগইন করুন</p></div>
+ <div class="lg-body">
+  <div class="lg-busy" id="lgBusy">সংযোগ হচ্ছে…</div>
+  <div id="lgForm" style="display:none">
+   <label for="lgEmail">ইমেইল</label>
+   <input id="lgEmail" type="email" inputmode="email" autocomplete="username" autocapitalize="none" spellcheck="false" onkeydown="if(event.key==='Enter')document.getElementById('lgPass').focus()">
+   <label for="lgPass">পাসওয়ার্ড</label>
+   <div class="lg-pw"><input id="lgPass" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')cloudLogin()"><button type="button" class="lg-eye" onclick="lgEye()" id="lgEyeBtn">দেখান</button></div>
+   <div class="lg-err" id="lgErr" role="alert"></div>
+   <button class="btn" id="lgBtn" onclick="cloudLogin()">লগইন</button>
+   <button class="btn gray sm" id="lgSkip" style="display:none" onclick="lgSkip()">ইন্টারনেট ছাড়া চালিয়ে যান</button>
+  </div>
+ </div>
+</div>
 <script>
 /* ===== ডেটা সংরক্ষণ (ফোনের ব্রাউজার মেমোরি) ===== */
 const KEY='alamgir_enterprise_v1';
@@ -158,7 +187,8 @@ function defaults(){return{profile:{shop:'মেসার্স আলমগী�
 staff:[1,2,3,4,5,6].map(i=>({id:'s'+i,name:'কর্মচারী '+bnd(i),phone:''})),att:{},emptx:[],ice:[],exp:[],meta:{lastBackup:''}}}
 function load(){try{const r=localStorage.getItem(KEY);if(r)return Object.assign(defaults(),JSON.parse(r))}catch(e){memOnly=true}return defaults()}
 let db=load();
-function save(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){memOnly=true}}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){memOnly=true}}
+function save(){db.meta=db.meta||{};db.meta.updatedAt=Date.now();persist();if(window.cloudPush)window.cloudPush()}
 
 /* ===== সহায়ক ===== */
 const $=s=>document.querySelector(s);
@@ -499,12 +529,12 @@ function reportPage(){const t=state.repTab,r=repRange(),c=calc(r.from,r.to),mult
 
 /* ===== প্রোফাইল ও ব্যাকআপ ===== */
 function profilePage(){const p=db.profile,kb=(JSON.stringify(db).length/1024).toFixed(1);
- return backBar('⚙️ সেটিং ও ব্যাকআপ','k-green')+`<div class="card k-gold"><h3 class="sec">💾 ডেটা ব্যাকআপ সংরক্ষণ</h3><div class="mut" style="margin-bottom:10px">সর্বশেষ ব্যাকআপ: <b>${db.meta.lastBackup?fmtDate(db.meta.lastBackup):'এখনও নেওয়া হয়নি'}</b></div><div class="stack"><button class="btn gold" onclick="doBackup()">⬇ ব্যাকআপ ফাইল সংরক্ষণ করুন</button><button class="btn gray" onclick="copyBackup()">📋 ব্যাকআপ কপি করুন</button></div></div>`+`<div class="card k-green"><h3 class="sec">🏪 দোকানের তথ্য</h3>
+ return backBar('⚙️ সেটিং ও ব্যাকআপ','k-green')+cloudCard()+`<div class="card k-gold"><h3 class="sec">💾 ডেটা ব্যাকআপ সংরক্ষণ</h3><div class="mut" style="margin-bottom:10px">সর্বশেষ ব্যাকআপ: <b>${db.meta.lastBackup?fmtDate(db.meta.lastBackup):'এখনও নেওয়া হয়নি'}</b></div><div class="stack"><button class="btn gold" onclick="doBackup()">⬇ ব্যাকআপ ফাইল সংরক্ষণ করুন</button><button class="btn gray" onclick="copyBackup()">📋 ব্যাকআপ কপি করুন</button></div></div>`+`<div class="card k-green"><h3 class="sec">🏪 দোকানের তথ্য</h3>
  <label>দোকানের নাম</label><input id="pf_shop" value="${esc(p.shop)}"><label>ব্যবহারকারীর নাম</label><input id="pf_owner" value="${esc(p.owner)}" placeholder="আপনার নাম">
  <label>মোবাইল নম্বর</label><input id="pf_phone" inputmode="tel" value="${esc(p.phone)}" placeholder="০১৭…"><label>ঠিকানা</label><input id="pf_addr" value="${esc(p.addr)}" placeholder="দোকানের ঠিকানা">
  <div style="margin-top:12px"><button class="btn" onclick="saveProfile()">✔ সংরক্ষণ করুন</button></div></div>
  <div class="card k-green"><h3 class="sec">📱 ডেটা সংরক্ষণের সেটিংস</h3>
- <div class="kv"><span>সংরক্ষণের জায়গা</span><b>ফোনের ব্রাউজার মেমোরি</b></div><div class="kv"><span>অবস্থা</span><b>${memOnly?'⚠️ সংরক্ষণ বন্ধ':'✅ চালু'}</b></div>
+ <div class="kv"><span>সংরক্ষণের জায়গা</span><b>${(window.CLOUD&&window.CLOUD.user)?'ফোন + ক্লাউড':'ফোনের ব্রাউজার মেমোরি'}</b></div><div class="kv"><span>অবস্থা</span><b>${memOnly?'⚠️ সংরক্ষণ বন্ধ':'✅ চালু'}</b></div>
  <div class="kv"><span>ডেটার আকার</span><b>${bnd(kb)} KB</b></div><div class="kv"><span>সর্বশেষ ব্যাকআপ</span><b>${db.meta.lastBackup?fmtDate(db.meta.lastBackup):'নেওয়া হয়নি'}</b></div>
  <div class="note">ডেটা এই ফোনের ব্রাউজারেই থাকে, ইন্টারনেট ছাড়াই কাজ করে। ব্রাউজারের “ক্যাশ/সাইট ডেটা” মুছলে ডেটা চলে যাবে — তাই নিয়মিত ব্যাকআপ নিন।</div></div>
  <div class="card k-gold"><h3 class="sec">♻️ ব্যাকআপ থেকে ফিরিয়ে আনুন</h3>
@@ -542,9 +572,129 @@ function demo(){const t=todayStr();db=defaults();db.profile.owner='আলমগ�
  db.emptx.push({id:uid(),date:addDays(t,-3),empId:'s1',type:'adv',ref:'adv',amount:3000,note:'ঈদ খরচ'},{id:uid(),date:addDays(t,-1),empId:'s2',type:'fish',ref:'fish',amount:30000,note:''},{id:uid(),date:t,empId:'s2',type:'ret',ref:'fish',amount:1000,note:''});
  state.date=t;commit('নমুনা ডেটা বসানো হয়েছে')}
 
+
+/* ===== ক্লাউড সিঙ্ক (সহায়ক) ===== */
+const CLOUD_FLAG='alamgir_cloud_ok';
+function localHasData(){return !!(db.fish.length||db.customers.length||db.ledger.length||db.emptx.length||db.ice.length||db.exp.length||Object.keys(db.att).length)}
+function cloudSnapshot(){db.meta=db.meta||{};if(!db.meta.updatedAt){db.meta.updatedAt=Date.now();persist()}return{json:JSON.stringify(db),t:db.meta.updatedAt}}
+function localStamp(){return(db.meta&&db.meta.updatedAt)||0}
+function applyRemote(d){if(localHasData()){try{localStorage.setItem(KEY+'_prev',JSON.stringify(db))}catch(e){}}
+ db=Object.assign(defaults(),d);persist();render()}
+function lgEye(){const i=document.getElementById('lgPass'),b=document.getElementById('lgEyeBtn');const h=i.type==='password';i.type=h?'text':'password';b.textContent=h?'লুকান':'দেখান'}
+function lgSkip(){document.getElementById('lg').style.display='none'}
+function cloudCard(){const C=window.CLOUD||{};
+ if(!C.user)return`<div class="card k-green"><h3 class="sec">☁️ ক্লাউড সিঙ্ক</h3><div class="note">এখন লগইন নেই বা ইন্টারনেট নেই, তাই ডেটা শুধু এই ফোনে আছে। ইন্টারনেট পেলে অ্যাপ আবার খুলে লগইন করুন।</div></div>`;
+ const m={ok:'✅ সিঙ্ক হয়েছে',pending:'⏳ সিঙ্ক হচ্ছে…',syncing:'⏳ সিঙ্ক হচ্ছে…',err:'⚠️ সিঙ্ক হয়নি'};
+ return`<div class="card k-green"><h3 class="sec">☁️ ক্লাউড সিঙ্ক</h3><div class="kv"><span>অ্যাকাউন্ট</span><b>${esc(C.user.email)}</b></div><div class="kv"><span>অবস্থা</span><b>${m[C.state]||'—'}</b></div>${C.err?`<div class="note">${esc(C.err)}</div>`:''}<div class="stack" style="margin-top:10px"><button class="btn sm" onclick="cloudSyncNow()">🔄 এখনই সিঙ্ক করুন</button><button class="btn gray sm" onclick="cloudLogout()">লগআউট</button></div></div>`}
+if(localStorage.getItem(CLOUD_FLAG)==='1'){document.getElementById('lg').style.display='none'}
+setTimeout(()=>{if(!window.CLOUD){document.getElementById('lgBusy').textContent='ইন্টারনেট সংযোগ পাওয়া যায়নি';document.getElementById('lgSkip').style.display='flex';document.getElementById('lgForm').style.display='block'}},8000);
+
 /* ===== শুরু ===== */
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
 render();
+</script>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import {initializeFirestore,doc,getDoc,setDoc,onSnapshot} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+const firebaseConfig={
+  apiKey:"AIzaSyCcA1O2WvURzGyJzSNg1HBhRay_nJlfmfc",
+  authDomain:"measars-alamgir-enterprise.firebaseapp.com",
+  projectId:"measars-alamgir-enterprise",
+  storageBucket:"measars-alamgir-enterprise.firebasestorage.app",
+  messagingSenderId:"135610433437",
+  appId:"1:135610433437:web:97ee2acb22a03c691fb974"
+};
+const C=window.CLOUD={state:'init',user:null,err:''};
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const fs=initializeFirestore(app,{experimentalAutoDetectLongPolling:true});
+let ref=null,unsub=null,pushT=null;
+const $g=id=>document.getElementById(id);
+
+function setStatus(st,err){
+  C.state=st;C.err=err||'';
+  const a=document.activeElement;
+  if(typeof state!=='undefined'&&state.page==='profile'&&!(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)))render();
+}
+function errText(e){
+  const c=(e&&e.code)||'';
+  if(c==='permission-denied')return'Firestore Rules ঠিক করা নেই (permission-denied)।';
+  if(c==='unavailable')return'ইন্টারনেট সংযোগ নেই। সংযোগ পেলে নিজেই সিঙ্ক হবে।';
+  return'সিঙ্ক হয়নি: '+(c||(e&&e.message)||'অজানা ত্রুটি');
+}
+async function pushNow(){
+  if(!ref)return;
+  const s=cloudSnapshot();
+  if(new Blob([s.json]).size>950000)setStatus('err','ডেটা ১ MB সীমার কাছে পৌঁছেছে। পুরোনো ডেটা ব্যাকআপ নিয়ে পরিষ্কার করুন।');
+  try{await setDoc(ref,{data:s.json,updatedAt:s.t});if(C.state!=='err'||!C.err.startsWith('ডেটা ১ MB'))setStatus('ok')}
+  catch(e){setStatus('err',errText(e))}
+}
+window.cloudPush=()=>{if(!ref)return;clearTimeout(pushT);setStatus('pending');pushT=setTimeout(pushNow,1200)};
+window.cloudSyncNow=async()=>{if(!ref)return;clearTimeout(pushT);setStatus('syncing');await pushNow();toast(C.state==='ok'?'সিঙ্ক হয়েছে ✔':'সিঙ্ক হয়নি','err'===C.state?'err':undefined)};
+
+function listen(){
+  if(unsub)unsub();
+  unsub=onSnapshot(ref,snap=>{
+    if(!snap.exists()||snap.metadata.hasPendingWrites)return;
+    const cd=snap.data();
+    if((cd.updatedAt||0)>localStamp()){applyRemote(JSON.parse(cd.data));toast('অন্য ফোনের নতুন ডেটা এসেছে ✔')}
+  },e=>setStatus('err',errText(e)));
+}
+async function startSync(user){
+  ref=doc(fs,'users',user.uid);
+  setStatus('syncing');
+  try{
+    const snap=await getDoc(ref);
+    if(!snap.exists()){await pushNow()}
+    else{
+      const cd=snap.data(),cu=cd.updatedAt||0,lu=localStamp();
+      if(lu===0&&localHasData()){
+        if(confirm('ক্লাউডে আগের হিসাব আছে, আবার এই ফোনেও আলাদা হিসাব আছে।\n\nOK চাপলে ক্লাউডের হিসাব আসবে (এই ফোনের আগের হিসাব আলাদা কপিতে থাকবে)।\nCancel চাপলে এই ফোনের হিসাব ক্লাউডে উঠবে।')){applyRemote(JSON.parse(cd.data))}
+        else{await pushNow()}
+      }
+      else if(cu>lu){applyRemote(JSON.parse(cd.data))}
+      else if(lu>cu){await pushNow()}
+    }
+    listen();
+    if(C.state!=='err')setStatus('ok');
+  }catch(e){setStatus('err',errText(e))}
+}
+
+const LG_ERR={'auth/invalid-credential':'ইমেইল বা পাসওয়ার্ড ভুল।','auth/wrong-password':'ইমেইল বা পাসওয়ার্ড ভুল।','auth/user-not-found':'ইমেইল বা পাসওয়ার্ড ভুল।','auth/invalid-email':'ইমেইল সঠিক নয়।','auth/too-many-requests':'অনেকবার ভুল হয়েছে। একটু পরে আবার চেষ্টা করুন।','auth/network-request-failed':'ইন্টারনেট সংযোগ নেই।','auth/operation-not-allowed':'Firebase-এ Email/Password লগইন চালু করা হয়নি।'};
+window.cloudLogin=async()=>{
+  const em=$g('lgEmail').value.trim(),pw=$g('lgPass').value,er=$g('lgErr'),bt=$g('lgBtn');
+  er.style.display='none';
+  if(!em||!pw){er.textContent='ইমেইল ও পাসওয়ার্ড দিন।';er.style.display='block';return}
+  bt.classList.add('off');bt.textContent='লগইন হচ্ছে…';
+  try{await signInWithEmailAndPassword(auth,em,pw)}
+  catch(e){er.textContent=LG_ERR[e.code]||('লগইন হয়নি ('+(e.code||'ত্রুটি')+')');er.style.display='block'}
+  bt.classList.remove('off');bt.textContent='লগইন';
+};
+window.cloudLogout=async()=>{
+  if(!confirm('লগআউট করবেন?\nএই ফোনের হিসাব মুছবে না, ক্লাউডেও থাকবে।'))return;
+  clearTimeout(pushT);await pushNow();
+  localStorage.removeItem(CLOUD_FLAG);
+  await signOut(auth);
+};
+
+onAuthStateChanged(auth,u=>{
+  C.user=u||null;
+  if(u){
+    localStorage.setItem(CLOUD_FLAG,'1');
+    $g('lg').style.display='none';
+    $g('lgPass').value='';
+    startSync(u);
+  }else{
+    ref=null;if(unsub){unsub();unsub=null}
+    C.state='out';
+    $g('lgBusy').style.display='none';$g('lgForm').style.display='block';
+    $g('lgSkip').style.display=navigator.onLine?'none':'flex';
+    $g('lg').style.display='flex';
+    if(typeof state!=='undefined'&&state.page==='profile')render();
+  }
+});
 </script>
 </body>
 </html>
