@@ -231,21 +231,21 @@ function toast(m,k){const t=$('#toast');t.textContent=m;t.className='toast show'
 
 /* ===== হিসাব (তারিখ অনুযায়ী; প্রতিটি তথ্য একবারই গোনা হয়) ===== */
 function calc(from,to){
- const R={buy:0,sell:0,buyKg:0,sellKg:0,recv:0,due:0,collect:0,buyOwn:0,iceCost:0,iceIn:0,iceUse:0,att:0,exp:0,expBy:{},adv:0,advRet:0,fishGive:0,fishRet:0};
+ const R={buy:0,sell:0,buyKg:0,sellKg:0,recv:0,due:0,collect:0,buyOwn:0,iceCost:0,iceIn:0,iceUse:0,iceSellQty:0,iceSellAmt:0,att:0,exp:0,expBy:{},adv:0,advRet:0,fishGive:0,fishRet:0};
  const ok=d=>d>=from&&d<=to;
  for(const x of db.fish){if(!ok(x.date))continue;const t=x.kg*x.rate;
   if(x.type==='buy'){R.buy+=t;R.buyKg+=x.kg;if(!x.payer)R.buyOwn+=t}
   else{R.sell+=t;R.sellKg+=x.kg;R.recv+=x.received;R.due+=t-x.received}}
  for(const l of db.ledger)if(ok(l.date)&&l.type==='pay'&&!l.open)R.collect+=l.amount;
- for(const i of db.ice)if(ok(i.date)&&!i.open){if(i.type==='in'){R.iceIn+=i.qty;R.iceCost+=i.qty*i.rate}else R.iceUse+=i.qty}
+ for(const i of db.ice)if(ok(i.date)&&!i.open){if(i.type==='in'){R.iceIn+=i.qty;R.iceCost+=i.qty*i.rate}else if(i.type==='sell'){R.iceSellQty+=i.qty;R.iceSellAmt+=i.qty*i.rate}else R.iceUse+=i.qty}
  for(const k in db.att){if(ok(k.split('|')[0]))R.att+=db.att[k].t||0}
  for(const e of db.exp)if(ok(e.date)){R.exp+=e.amount;R.expBy[e.cat]=(R.expBy[e.cat]||0)+e.amount}
  for(const t of db.emptx)if(ok(t.date)&&!t.open){
   if(t.type==='adv')R.adv+=t.amount;else if(t.type==='fish')R.fishGive+=t.amount;
   else if(t.ref==='adv')R.advRet+=t.amount;else R.fishRet+=t.amount}
  R.cost=R.exp+R.iceCost+R.att;
- R.profit=R.sell-R.buy-R.cost;
- R.cashIn=R.recv+R.collect+R.advRet+R.fishRet;
+ R.profit=R.sell+R.iceSellAmt-R.buy-R.cost;
+ R.cashIn=R.recv+R.collect+R.advRet+R.fishRet+R.iceSellAmt;
  R.cashOut=R.buyOwn+R.exp+R.iceCost+R.att+R.adv+R.fishGive;
  R.cash=R.cashIn-R.cashOut;
  return R}
@@ -443,21 +443,27 @@ function attView(){const d=state.date,m=d.slice(0,7);
  const cnt=s=>db.staff.filter(x=>rec(x.id).s===s).length,taken=sum(db.staff,x=>rec(x.id).t||0);
  return `<div class="card k-staff stat"><div class="sl">👨‍💼 ${fmtShort(d)} তারিখের হাজিরা</div><div class="minis" style="grid-template-columns:repeat(4,1fr)">
  <div class="mini"><b>${bnNum(cnt('p'),0)}</b>উপস্থিত</div><div class="mini"><b>${bnNum(cnt('a'),0)}</b>অনুপস্থিত</div><div class="mini"><b>${bnNum(cnt('h'),0)}</b>হাফ</div><div class="mini"><b>${taka(taken)}</b>টাকা নিল</div></div></div>`+
- db.staff.map(s=>{const r=rec(s.id);let p=0,a=0,h=0,t=0;
+ db.staff.map(s=>{const r=rec(s.id);let p=0,a=0,h=0,t=0;const z=salCalc(s,m);
   for(const k in db.att){if(k.startsWith(m)&&k.endsWith('|'+s.id)){const z=db.att[k];if(z.s==='p')p++;if(z.s==='a')a++;if(z.s==='h')h++;t+=z.t||0}}
   return `<div class="card k-staff"><div class="shead"><div class="avatar">${esc(s.name.trim().charAt(0))}</div><div class="grow"><b style="font-size:18px">${esc(s.name)}</b><br>${s.phone?`<a href="tel:${esc(s.phone)}">📞 ${bnd(esc(s.phone))}</a>`:'<span class="mut">মোবাইল নম্বর নেই</span>'}</div>
   <button class="del" onclick="staffSheet('${s.id}')" aria-label="নাম এডিট">✏️</button></div>
   <div class="tri"><button class="p ${r.s==='p'?'on':''}" onclick="setAtt('${s.id}','p')">✅<br>উপস্থিত</button><button class="a ${r.s==='a'?'on':''}" onclick="setAtt('${s.id}','a')">❌<br>অনুপস্থিত</button><button class="h ${r.s==='h'?'on':''}" onclick="setAtt('${s.id}','h')">🌗<br>হাফ বেলা</button></div>
   <label>আজ কত টাকা নিল (৳)</label><input inputmode="decimal" placeholder="০" value="${r.t||''}" onchange="setTaken('${s.id}',this.value)">
   <div class="minis"><div class="mini"><b>${bnNum(p,0)}</b>মাসে উপস্থিত</div><div class="mini"><b>${bnNum(a,0)} / ${bnNum(h,0)}</b>অনুপস্থিত / হাফ</div><div class="mini"><b>${taka(t)}</b>মাসে মোট নিল</div></div>
+   ${z.sal>0?`<div class="minis" style="margin-top:8px"><div class="mini"><b>${taka(z.sal)}</b>মাসিক বেতন</div><div class="mini"><b>${taka(z.ded)}</b>অনুপস্থিতির কাটা</div><div class="mini"><b>${taka(Math.abs(z.rem))}</b>${z.rem>=0?'বাকি বেতন':'বেশি নিয়েছে'}</div></div>`:`<div class="mut" style="margin-top:8px">মাসিক বেতন দেওয়া নেই। ✏️ চেপে যোগ করুন।</div>`}
   <div style="margin-top:10px"><button class="btn gray sm" onclick="staffHistory('${s.id}')">📜 তারিখ অনুযায়ী রেকর্ড</button></div></div>`}).join('')+
- `<div class="note">হাজিরায় “টাকা নিল” অংশটি শ্রমিক খরচ হিসেবে খরচের হিসাবে নিজে থেকেই যোগ হয়। ব্যক্তিগত অগ্রিম আলাদা — “অগ্রিম ও লেনদেন” ট্যাবে।</div>`}
+ salSummary(m)+`<div class="note">মাসিক বেতন: প্রতিদিনের বেতন = মাসিক বেতন ÷ ৩০। ১ দিন অনুপস্থিত হলে পুরো দিনের, হাফ বেলায় আধা দিনের বেতন কাটা হয়। বেতনের এই হিসাব শুধু দেখার জন্য; খরচের হিসাবে যায় শুধু “টাকা নিল” অংশ।</div>`+`<div class="note">হাজিরায় “টাকা নিল” অংশটি শ্রমিক খরচ হিসেবে খরচের হিসাবে নিজে থেকেই যোগ হয়। ব্যক্তিগত অগ্রিম আলাদা — “অগ্রিম ও লেনদেন” ট্যাবে।</div>`}
+function salCalc(s,m){let p=0,a=0,h=0,t=0;for(const k in db.att){if(k.startsWith(m)&&k.endsWith('|'+s.id)){const z=db.att[k];if(z.s==='p')p++;if(z.s==='a')a++;if(z.s==='h')h++;t+=z.t||0}}
+ const sal=Number(s.salary)||0,ded=Math.round(sal/30*(a+h/2)),pay=sal-ded;return{p,a,h,t,sal,ded,pay,rem:pay-t}}
+function salSummary(m){const L=db.staff.map(s=>({s,z:salCalc(s,m)})).filter(x=>x.z.sal>0);if(!L.length)return'';
+ const T=k=>sum(L,x=>x.z[k]),rem=T('rem');
+ return`<div class="card k-staff"><h3 class="sec">📋 ${MONTHS[Number(m.slice(5,7))-1]} ${bnd(m.slice(0,4))} — বেতনের হিসাব</h3><div class="scroll"><table class="tbl"><tr><th>নাম</th><th>বেতন</th><th>কাটা</th><th>নিয়েছে</th><th>বাকি</th></tr>${L.map(({s,z})=>`<tr><td>${esc(s.name)}</td><td>${taka(z.sal)}</td><td>${taka(z.ded)}</td><td>${taka(z.t)}</td><td><b>${z.rem<0?'−':''}${taka(Math.abs(z.rem))}</b></td></tr>`).join('')}<tr><td><b>মোট</b></td><td><b>${taka(T('sal'))}</b></td><td><b>${taka(T('ded'))}</b></td><td><b>${taka(T('t'))}</b></td><td><b>${rem<0?'−':''}${taka(Math.abs(rem))}</b></td></tr></table></div></div>`}
 function setAtt(id,s){const k=state.date+'|'+id,r=db.att[k]||{};r.s=r.s===s?'':s;if(!r.s&&!r.t)delete db.att[k];else db.att[k]=r;commit()}
 function setTaken(id,val){const k=state.date+'|'+id,r=db.att[k]||{};r.t=Math.max(0,parseFloat(toLat(val).replace(/,/g,''))||0);if(!r.s&&!r.t)delete db.att[k];else db.att[k]=r;commit('সংরক্ষিত ✔')}
 function staffSheet(id){const s=db.staff.find(x=>x.id===id);
- openSheet('কর্মচারীর তথ্য',`<label>কর্মচারীর নাম</label><input id="st_name" value="${esc(s.name)}"><label>মোবাইল নম্বর</label><input id="st_phone" inputmode="tel" value="${esc(s.phone)}" placeholder="০১৭…">
+ openSheet('কর্মচারীর তথ্য',`<label>কর্মচারীর নাম</label><input id="st_name" value="${esc(s.name)}"><label>মোবাইল নম্বর</label><input id="st_phone" inputmode="tel" value="${esc(s.phone)}" placeholder="০১৭…"><label>মাসিক বেতন (৳)</label><input id="st_salary" inputmode="decimal" placeholder="০" value="${s.salary||''}">
  <div class="btnrow"><button class="btn gray" onclick="closeSheet()">বাতিল</button><button class="btn k-staff" onclick="saveStaff('${id}')">সংরক্ষণ</button></div>`,'k-staff')}
-function saveStaff(id){const n=v('st_name').trim();if(!n)return toast('নাম লিখুন','err');const s=db.staff.find(x=>x.id===id);s.name=n;s.phone=toLat(v('st_phone')).trim();closeSheet();commit('সংরক্ষিত ✔')}
+function saveStaff(id){const n=v('st_name').trim();if(!n)return toast('নাম লিখুন','err');const s=db.staff.find(x=>x.id===id);s.name=n;s.phone=toLat(v('st_phone')).trim();s.salary=Math.max(0,parseFloat(toLat(v('st_salary')).replace(/,/g,''))||0);closeSheet();commit('সংরক্ষিত ✔')}
 function staffHistory(id){const s=db.staff.find(x=>x.id===id);
  const rows=Object.keys(db.att).filter(k=>k.endsWith('|'+id)).map(k=>({d:k.split('|')[0],...db.att[k]})).sort((a,b)=>b.d.localeCompare(a.d));
  openSheet(s.name+' — রেকর্ড',`<div class="minis" style="margin:6px 0"><div class="mini"><b>${bnNum(rows.filter(r=>r.s==='p').length,0)}</b>উপস্থিত</div><div class="mini"><b>${bnNum(rows.filter(r=>r.s==='a').length,0)}</b>অনুপস্থিত</div><div class="mini"><b>${taka(sum(rows,r=>r.t||0))}</b>মোট নিল</div></div>
@@ -485,21 +491,30 @@ function delEmp(id){ask('এই লেনদেন মুছবেন?',()=>{db.
 
 /* ===== বরফের হিসাব ===== */
 function icePage(){const d=state.date,day=db.ice.filter(i=>i.date===d);
- const inn=sum(day.filter(i=>i.type==='in'),i=>i.qty),cost=sum(day.filter(i=>i.type==='in'),i=>i.qty*i.rate),use=sum(day.filter(i=>i.type==='use'),i=>i.qty);
- const dates=[...new Set(db.ice.map(i=>i.date))].sort();let run=0;const rows=dates.map(x=>{const a=db.ice.filter(i=>i.date===x);const q=sum(a.filter(i=>i.type==='in'),i=>i.qty),c=sum(a.filter(i=>i.type==='in'),i=>i.qty*i.rate),u=sum(a.filter(i=>i.type==='use'),i=>i.qty);run+=q-u;return{x,q,c,u,run}}).reverse().slice(0,30);
+ const Q=(a,t)=>sum(a.filter(i=>i.type===t),i=>i.qty),A=(a,t)=>sum(a.filter(i=>i.type===t),i=>i.qty*i.rate);
+ const inn=Q(day,'in'),cost=A(day,'in'),use=Q(day,'use'),sq=Q(day,'sell'),sa=A(day,'sell');
+ const dates=[...new Set(db.ice.map(i=>i.date))].sort();let run=0;
+ const rows=dates.map(x=>{const a=db.ice.filter(i=>i.date===x);const q=Q(a,'in'),c=A(a,'in'),u=Q(a,'use'),b=Q(a,'sell'),m=A(a,'sell');run+=q-u-b;return{x,q,c,u,b,m,run}}).reverse().slice(0,30);
+ const IL={in:['⬇','বরফ এলো'],use:['🏠','নিজ খরচ'],sell:['💰','বাইরে বিক্রি']};
+ const sm='style="font-size:22px"';
  return backBar('🧊 বরফের হিসাব','k-ice')+dateBar()+`<div class="k-ice"><div class="card stat"><div class="sl">🧊 ${fmtShort(d)} পর্যন্ত অবশিষ্ট স্টক</div><div class="sv">${bnNum(iceStock(d))} টি</div></div>
- <div class="grid2"><div class="card stat"><div class="sl">আজ এসেছে</div><div class="sv" style="font-size:22px">${bnNum(inn)} টি</div></div><div class="card stat"><div class="sl">আজ দাম</div><div class="sv" style="font-size:22px">${taka(cost)}</div></div>
- <div class="card stat"><div class="sl">আজ ব্যবহার</div><div class="sv" style="font-size:22px">${bnNum(use)} টি</div></div><div class="card stat"><div class="sl">আজ শেষে অবশিষ্ট</div><div class="sv" style="font-size:22px">${bnNum(iceStock(d))} টি</div></div></div>
- <div class="btnrow" style="margin:0 0 12px"><button class="btn" onclick="iceSheet('in')">⬇ বরফ এলো</button><button class="btn line" onclick="iceSheet('use')">⬆ বরফ ব্যবহার</button></div>
- <div class="card"><h3 class="sec">এই দিনের এন্ট্রি</h3>${day.length?day.map(i=>`<div class="item"><div class="grow"><b>${i.type==='in'?'⬇ বরফ এলো':'⬆ বরফ ব্যবহার'}</b><div class="mut">${bnNum(i.qty)} টি${i.type==='in'?' × '+taka(i.rate)+' = '+taka(i.qty*i.rate):''}${i.note?' · '+esc(i.note):''}</div></div><button class="del" onclick="delIce('${i.id}')">🗑</button></div>`).join(''):'<div class="empty">এই তারিখে কোনো এন্ট্রি নেই</div>'}</div>
- <div class="card"><h3 class="sec">দিন অনুযায়ী খাতা</h3>${rows.length?`<div class="scroll"><table class="tbl"><tr><th>তারিখ</th><th>এসেছে</th><th>দাম</th><th>ব্যবহার</th><th>অবশিষ্ট</th></tr>${rows.map(r=>`<tr><td>${fmtShort(r.x)}</td><td>${bnNum(r.q)}</td><td>${taka(r.c)}</td><td>${bnNum(r.u)}</td><td><b>${bnNum(r.run)}</b></td></tr>`).join('')}</table></div>`:'<div class="empty">এখনও কোনো বরফের হিসাব নেই</div>'}</div>
- <div class="note">বরফ কেনার দাম খরচের হিসাবে নিজে থেকে যোগ হয়, আলাদা করে খরচে লিখবেন না।</div></div>`}
-function iceSheet(type){openSheet(type==='in'?'বরফ এলো':'বরফ ব্যবহার',`<div class="mut">তারিখ ${fmtDate(state.date)}</div><label>কতটি বরফ</label><input id="i_qty" inputmode="decimal" placeholder="০" ${type==='in'?'oninput="liveIce()"':''}>
- ${type==='in'?`<label>প্রতিটির দাম (৳)</label><input id="i_rate" inputmode="decimal" placeholder="০" oninput="liveIce()"><div class="totalbox"><span>মোট দাম</span><b id="i_total">৳০</b></div>`:''}
- <label>নোট (ঐচ্ছিক)</label><input id="i_note"><div class="btnrow"><button class="btn gray" onclick="closeSheet()">বাতিল</button><button class="btn k-ice" onclick="saveIce('${type}')">সংরক্ষণ</button></div>`,'k-ice')}
+ <div class="grid2"><div class="card stat"><div class="sl">আজ এসেছে</div><div class="sv" ${sm}>${bnNum(inn)} টি</div></div><div class="card stat"><div class="sl">আজ কেনা দাম</div><div class="sv" ${sm}>${taka(cost)}</div></div>
+ <div class="card stat"><div class="sl">🏠 আজ নিজ খরচ</div><div class="sv" ${sm}>${bnNum(use)} টি</div></div><div class="card stat"><div class="sl">💰 আজ বাইরে বিক্রি</div><div class="sv" ${sm}>${bnNum(sq)} টি</div></div>
+ <div class="card stat"><div class="sl">আজ বিক্রির টাকা</div><div class="sv" ${sm}>${taka(sa)}</div></div><div class="card stat"><div class="sl">আজ শেষে অবশিষ্ট</div><div class="sv" ${sm}>${bnNum(iceStock(d))} টি</div></div></div>
+ <div class="btnrow" style="margin:0 0 12px;grid-template-columns:repeat(3,1fr)"><button class="btn" style="padding:0 4px;font-size:15px" onclick="iceSheet('in')">⬇ বরফ এলো</button><button class="btn line" style="padding:0 4px;font-size:15px" onclick="iceSheet('use')">🏠 নিজ খরচ</button><button class="btn gold" style="padding:0 4px;font-size:15px" onclick="iceSheet('sell')">💰 বাইরে বিক্রি</button></div>
+ <div class="card"><h3 class="sec">এই দিনের এন্ট্রি</h3>${day.length?day.map(i=>`<div class="item"><div class="grow"><b>${IL[i.type][0]} ${IL[i.type][1]}</b><div class="mut">${bnNum(i.qty)} টি${i.type!=='use'?' × '+taka(i.rate)+' = '+taka(i.qty*i.rate):''}${i.note?' · '+esc(i.note):''}</div></div><button class="del" onclick="delIce('${i.id}')">🗑</button></div>`).join(''):'<div class="empty">এই তারিখে কোনো এন্ট্রি নেই</div>'}</div>
+ <div class="card"><h3 class="sec">দিন অনুযায়ী খাতা</h3>${rows.length?`<div class="scroll"><table class="tbl"><tr><th>তারিখ</th><th>এসেছে</th><th>কেনা ৳</th><th>নিজ খরচ</th><th>বিক্রি (টি)</th><th>বিক্রি ৳</th><th>অবশিষ্ট</th></tr>${rows.map(r=>`<tr><td>${fmtShort(r.x)}</td><td>${bnNum(r.q)}</td><td>${taka(r.c)}</td><td>${bnNum(r.u)}</td><td>${bnNum(r.b)}</td><td>${taka(r.m)}</td><td><b>${bnNum(r.run)}</b></td></tr>`).join('')}</table></div>`:'<div class="empty">এখনও কোনো বরফের হিসাব নেই</div>'}</div>
+ <div class="note">বরফ কেনার দাম খরচের হিসাবে নিজে থেকে যোগ হয়, আলাদা করে খরচে লিখবেন না। বাইরে বিক্রির টাকা আয় হিসেবে লাভের সাথে যোগ হয় ও নগদে আসে। নিজ খরচে কোনো টাকা ধরা হয় না, শুধু স্টক কমে।</div></div>`}
+const ICE_T={in:['বরফ এলো','প্রতিটির দাম (৳)','নোট (ঐচ্ছিক)'],use:['নিজ খরচ (বরফ)','','কী কাজে খরচ — নোট (ঐচ্ছিক)'],sell:['বরফ বাইরে বিক্রি','প্রতিটির বিক্রয়মূল্য (৳)','কার কাছে বিক্রি — নোট (ঐচ্ছিক)']};
+function iceSheet(type){const T=ICE_T[type],pr=type!=='use';
+ openSheet(T[0],`<div class="mut">তারিখ ${fmtDate(state.date)}</div><label>কতটি বরফ</label><input id="i_qty" inputmode="decimal" placeholder="০" ${pr?'oninput="liveIce()"':''}>
+ ${pr?`<label>${T[1]}</label><input id="i_rate" inputmode="decimal" placeholder="০" oninput="liveIce()"><div class="totalbox"><span>${type==='sell'?'মোট বিক্রি':'মোট দাম'}</span><b id="i_total">৳০</b></div>`:''}
+ <label>${T[2]}</label><input id="i_note"${type==='sell'?' placeholder="যেমন: রহিম মাছওয়ালা"':type==='use'?' placeholder="যেমন: মাছ সংরক্ষণে"':''}><div class="btnrow"><button class="btn gray" onclick="closeSheet()">বাতিল</button><button class="btn k-ice" onclick="saveIce('${type}')">সংরক্ষণ</button></div>`,'k-ice')}
 function liveIce(){$('#i_total').textContent=taka(num('i_qty')*num('i_rate'))}
-function saveIce(type){const q=num('i_qty'),r=type==='in'?num('i_rate'):0;if(!(q>0))return toast('বরফের সংখ্যা লিখুন','err');if(type==='in'&&!(r>0))return toast('প্রতিটির দাম লিখুন','err');
- if(type==='use'&&q>iceStock(state.date))return toast('স্টকের চেয়ে বেশি ব্যবহার! অবশিষ্ট '+bnNum(iceStock(state.date))+' টি','err');
+function saveIce(type){const pr=type!=='use',q=num('i_qty'),r=pr?num('i_rate'):0;
+ if(!(q>0))return toast('বরফের সংখ্যা লিখুন','err');
+ if(pr&&!(r>0))return toast(type==='sell'?'প্রতিটির বিক্রয়মূল্য লিখুন':'প্রতিটির দাম লিখুন','err');
+ if(type!=='in'&&q>iceStock(state.date))return toast('স্টকের চেয়ে বেশি! অবশিষ্ট '+bnNum(iceStock(state.date))+' টি','err');
  db.ice.push({id:uid(),date:state.date,type,qty:q,rate:r,note:v('i_note').trim()});closeSheet();commit('সংরক্ষিত ✔')}
 function delIce(id){ask('এই এন্ট্রি মুছবেন?',()=>{db.ice=db.ice.filter(i=>i.id!==id);commit('মুছে ফেলা হয়েছে')})}
 
@@ -522,7 +537,7 @@ function delExp(id){ask('এই খরচ মুছবেন?',()=>{db.exp=db.ex
 /* ===== রিপোর্ট ===== */
 /* ===== বার্ষিক: মাস অনুযায়ী ===== */
 function yearRows(r){const y=Number(state.repYear),list=[];
- for(let m=1;m<=12;m++){const f=y+'-'+pad(m)+'-01',t=y+'-'+pad(m)+'-'+pad(new Date(y,m,0).getDate());const k=calc(f,t);if(k.sell||k.buy||k.cost)list.push({m,k})}
+ for(let m=1;m<=12;m++){const f=y+'-'+pad(m)+'-01',t=y+'-'+pad(m)+'-'+pad(new Date(y,m,0).getDate());const k=calc(f,t);if(k.sell||k.buy||k.cost||k.iceSellAmt)list.push({m,k})}
  const mx=Math.max(1,...list.map(x=>Math.max(x.k.sell,x.k.buy)));
  const best=list.length?list.reduce((a,b)=>b.k.profit>a.k.profit?b:a):null;
  return`<div class="card"><h3 class="sec">মাস অনুযায়ী</h3>${list.length?list.map(({m,k})=>`<div class="dayrow"><div class="t"><span>${MONTHS[m-1]}</span><span style="color:var(--${k.profit<0?'exp':'sell'}-t)">${k.profit<0?'ক্ষতি ':'লাভ '}${taka(Math.abs(k.profit))}</span></div>
@@ -538,7 +553,7 @@ function repShift(n){const t=state.repTab;
  else{const[y,m]=state.repMonth.split('-').map(Number);const d=new Date(y,m-1+n,1);state.repMonth=d.getFullYear()+'-'+pad(d.getMonth()+1)}render()}
 function reportPage(){const t=state.repTab,r=repRange(),c=calc(r.from,r.to),multi=t!=='day';
  const names={};db.fish.filter(x=>x.date>=r.from&&x.date<=r.to).forEach(x=>{const n=names[x.name]||(names[x.name]={bk:0,ba:0,sk:0,sa:0});if(x.type==='buy'){n.bk+=x.kg;n.ba+=x.kg*x.rate}else{n.sk+=x.kg;n.sa+=x.kg*x.rate}});
- let days='';if(t==='year'){days=yearRows(r)}else if(multi){const list=[];for(let d=r.from;d<=r.to;d=addDays(d,1)){const k=calc(d,d);if(k.sell||k.buy||k.cost)list.push({d,k})}
+ let days='';if(t==='year'){days=yearRows(r)}else if(multi){const list=[];for(let d=r.from;d<=r.to;d=addDays(d,1)){const k=calc(d,d);if(k.sell||k.buy||k.cost||k.iceSellAmt)list.push({d,k})}
   const mx=Math.max(1,...list.map(x=>Math.max(x.k.sell,x.k.buy)));
   days=`<div class="card"><h3 class="sec">দিন অনুযায়ী</h3>${list.length?list.map(({d,k})=>`<div class="dayrow"><div class="t"><span>${fmtShort(d)} · ${fmtDay(d)}</span><span style="color:var(--${k.profit<0?'exp':'sell'}-t)">${k.profit<0?'ক্ষতি ':'লাভ '}${taka(Math.abs(k.profit))}</span></div>
   <div class="mut">বিক্রি ${taka(k.sell)} · কেনা ${taka(k.buy)} · খরচ ${taka(k.cost)}</div><div class="k-sell" style="margin-top:4px"><div class="bar" style="width:${k.sell/mx*100}%"></div></div><div class="k-buy" style="margin-top:3px"><div class="bar" style="width:${k.buy/mx*100}%"></div></div></div>`).join(''):'<div class="empty">এই সময়ে কোনো হিসাব নেই</div>'}<div class="note">সবুজ দাগ = বিক্রি, নীল দাগ = কেনা</div></div>`}
@@ -546,8 +561,8 @@ function reportPage(){const t=state.repTab,r=repRange(),c=calc(r.from,r.to),mult
  return `<div class="seg k-rep"><button class="${t==='day'?'on':''}" onclick="go('report',{repTab:'day'})">📅<br>দৈনিক</button><button class="${t==='week'?'on':''}" onclick="go('report',{repTab:'week'})">🗓️<br>সাপ্তাহিক</button><button class="${t==='month'?'on':''}" onclick="go('report',{repTab:'month'})">📆<br>মাসিক</button><button class="${t==='year'?'on':''}" onclick="go('report',{repTab:'year'})">📖<br>বার্ষিক</button></div>
  <div class="datebar"><button class="nb" onclick="repShift(-1)">‹</button>${(t==='month'||t==='year')?`<div class="dpick"><span>${r.label}</span></div>`:`<label class="dpick"><span>${r.label}${t==='week'?'<small>সপ্তাহ (শনি–শুক্র)</small>':''}</span><input type="date" value="${state.repDate}" onchange="if(this.value){state.repDate=this.value;render()}"></label>`}<button class="nb" onclick="repShift(1)">›</button></div>
  <div class="grid2"><div class="k-buy">${stat('buy','🛒','মোট কেনা',taka(c.buy),bnNum(c.buyKg)+' কেজি')}</div><div class="k-sell">${stat('sell','💵','মোট বিক্রি',taka(c.sell),bnNum(c.sellKg)+' কেজি')}</div>
- ${stat('exp','🧾','মোট খরচ',taka(c.cost))}${stat(c.profit<0?'exp':'green',c.profit<0?'📉':'📈',c.profit<0?'ক্ষতি':'লাভ',taka(Math.abs(c.profit)),'বিক্রি − কেনা − খরচ')}</div>
- <div class="card"><h3 class="sec">💵 বিক্রি ও বাকি</h3>${kvs([['নগদ পেয়েছি',taka(c.recv)],['বাকি রেখেছি',taka(c.due)],['পুরনো বাকি আদায়',taka(c.collect)]])}</div>
+ ${stat('exp','🧾','মোট খরচ',taka(c.cost))}${stat(c.profit<0?'exp':'green',c.profit<0?'📉':'📈',c.profit<0?'ক্ষতি':'লাভ',taka(Math.abs(c.profit)),c.iceSellAmt>0?'বিক্রি + বরফ বিক্রি − কেনা − খরচ':'বিক্রি − কেনা − খরচ')}</div>
+ <div class="card"><h3 class="sec">💵 বিক্রি ও বাকি</h3>${kvs([['নগদ পেয়েছি',taka(c.recv)],['বাকি রেখেছি',taka(c.due)],['পুরনো বাকি আদায়',taka(c.collect)],...(c.iceSellAmt>0?[['🧊 বরফ বাইরে বিক্রি (নগদ)',taka(c.iceSellAmt)]]:[])])}</div>
  <div class="card"><h3 class="sec">🧾 খরচের বিবরণ</h3>${kvs([...CATS.map(x=>[x[1]+' '+x[0],taka(c.expBy[x[0]]||0)]),['👷 শ্রমিক (হাজিরা থেকে)',taka(c.att)],['🧊 বরফ ক্রয়',taka(c.iceCost)]])}<div class="kv tot"><span>মোট খরচ</span><b>${taka(c.cost)}</b></div></div>
  <div class="card"><h3 class="sec">💵 নগদ টাকার প্রবাহ</h3>${kvs([['আসা',taka(c.cashIn)],['গেছে',taka(c.cashOut)]])}<div class="kv tot"><span>নগদ (আসা − গেছে)</span><b>${taka(c.cash)}</b></div></div>
  <div class="card" style="display:none"><h3 class="sec">🐟 মাছ অনুযায়ী</h3>${Object.keys(names).length?`<div class="scroll"><table class="tbl"><tr><th>মাছ</th><th>কেনা কেজি</th><th>কেনা ৳</th><th>বিক্রি কেজি</th><th>বিক্রি ৳</th></tr>${Object.keys(names).map(n=>{const z=names[n];return `<tr><td>${esc(n)}</td><td>${bnNum(z.bk)}</td><td>${taka(z.ba)}</td><td>${bnNum(z.sk)}</td><td>${taka(z.sa)}</td></tr>`}).join('')}</table></div>`:'<div class="empty">কোনো এন্ট্রি নেই</div>'}</div>`+days}
