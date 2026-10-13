@@ -192,7 +192,10 @@ function persist(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){mem
 /* দুই কপি (অ্যাপ + ব্রাউজার ট্যাব) মেলানো: একই id-র এন্ট্রি হলে 'a' (আমার) জেতে, বাকিগুলো দুই দিক থেকেই থাকে */
 function mergeDb(a,b){const out=Object.assign({},b,a);
  ['fish','customers','ledger','emptx','ice','exp','staff'].forEach(k=>{const x=Array.isArray(a[k])?a[k]:[],y=Array.isArray(b[k])?b[k]:[];const ids=new Set(x.map(i=>i&&i.id));out[k]=x.concat(y.filter(i=>i&&(i.id?!ids.has(i.id):!x.some(j=>JSON.stringify(j)===JSON.stringify(i)))))});
- out.att=Object.assign({},b.att||{},a.att||{});out.profile=Object.assign({},b.profile||{},a.profile||{});out.meta=Object.assign({},b.meta||{},a.meta||{});return out}
+ out.att=Object.assign({},b.att||{},a.att||{});out.profile=Object.assign({},b.profile||{},a.profile||{});out.meta=Object.assign({},b.meta||{},a.meta||{});
+ const ab=[(a.meta||{}).archivedBefore,(b.meta||{}).archivedBefore].filter(Boolean).sort().pop();
+ if(ab){const yr=Number(ab.slice(0,4));['fish','ledger','emptx','ice','exp'].forEach(k=>{out[k]=out[k].filter(x=>!x.date||x.date>=ab||x.open===yr)});Object.keys(out.att).forEach(k=>{if(k.split('|')[0]<ab)delete out.att[k]});out.meta.archivedBefore=ab}
+ return out}
 function readStored(){try{const r=localStorage.getItem(KEY);return r?JSON.parse(r):null}catch(e){return null}}
 function save(){db.meta=db.meta||{};
  const o=readStored();const os=(o&&o.meta&&o.meta.updatedAt)||0;
@@ -233,11 +236,11 @@ function calc(from,to){
  for(const x of db.fish){if(!ok(x.date))continue;const t=x.kg*x.rate;
   if(x.type==='buy'){R.buy+=t;R.buyKg+=x.kg;if(!x.payer)R.buyOwn+=t}
   else{R.sell+=t;R.sellKg+=x.kg;R.recv+=x.received;R.due+=t-x.received}}
- for(const l of db.ledger)if(ok(l.date)&&l.type==='pay')R.collect+=l.amount;
- for(const i of db.ice)if(ok(i.date)){if(i.type==='in'){R.iceIn+=i.qty;R.iceCost+=i.qty*i.rate}else R.iceUse+=i.qty}
+ for(const l of db.ledger)if(ok(l.date)&&l.type==='pay'&&!l.open)R.collect+=l.amount;
+ for(const i of db.ice)if(ok(i.date)&&!i.open){if(i.type==='in'){R.iceIn+=i.qty;R.iceCost+=i.qty*i.rate}else R.iceUse+=i.qty}
  for(const k in db.att){if(ok(k.split('|')[0]))R.att+=db.att[k].t||0}
  for(const e of db.exp)if(ok(e.date)){R.exp+=e.amount;R.expBy[e.cat]=(R.expBy[e.cat]||0)+e.amount}
- for(const t of db.emptx)if(ok(t.date)){
+ for(const t of db.emptx)if(ok(t.date)&&!t.open){
   if(t.type==='adv')R.adv+=t.amount;else if(t.type==='fish')R.fishGive+=t.amount;
   else if(t.ref==='adv')R.advRet+=t.amount;else R.fishRet+=t.amount}
  R.cost=R.exp+R.iceCost+R.att;
@@ -523,7 +526,7 @@ function yearRows(r){const y=Number(state.repYear),list=[];
  const mx=Math.max(1,...list.map(x=>Math.max(x.k.sell,x.k.buy)));
  const best=list.length?list.reduce((a,b)=>b.k.profit>a.k.profit?b:a):null;
  return`<div class="card"><h3 class="sec">মাস অনুযায়ী</h3>${list.length?list.map(({m,k})=>`<div class="dayrow"><div class="t"><span>${MONTHS[m-1]}</span><span style="color:var(--${k.profit<0?'exp':'sell'}-t)">${k.profit<0?'ক্ষতি ':'লাভ '}${taka(Math.abs(k.profit))}</span></div>
- <div class="mut">বিক্রি ${taka(k.sell)} · কেনা ${taka(k.buy)} · খরচ ${taka(k.cost)}</div><div class="k-sell" style="margin-top:4px"><div class="bar" style="width:${k.sell/mx*100}%"></div></div><div class="k-buy" style="margin-top:3px"><div class="bar" style="width:${k.buy/mx*100}%"></div></div></div>`).join(''):'<div class="empty">এই বছরে কোনো হিসাব নেই</div>'}${best&&best.k.profit>0?`<div class="kv tot"><span>সবচেয়ে বেশি লাভ</span><b>${MONTHS[best.m-1]} · ${taka(best.k.profit)}</b></div>`:''}<div class="note">সবুজ দাগ = বিক্রি, নীল দাগ = কেনা</div></div>`}
+ <div class="mut">বিক্রি ${taka(k.sell)} · কেনা ${taka(k.buy)} · খরচ ${taka(k.cost)}</div><div class="k-sell" style="margin-top:4px"><div class="bar" style="width:${k.sell/mx*100}%"></div></div><div class="k-buy" style="margin-top:3px"><div class="bar" style="width:${k.buy/mx*100}%"></div></div></div>`).join(''):`<div class="empty">${(db.meta.archivedBefore&&state.repYear<db.meta.archivedBefore.slice(0,4))?'এই বছরের হিসাব আর্কাইভ করা হয়েছে (ব্যাকআপ ফাইলে আছে)':'এই বছরে কোনো হিসাব নেই'}</div>`}${best&&best.k.profit>0?`<div class="kv tot"><span>সবচেয়ে বেশি লাভ</span><b>${MONTHS[best.m-1]} · ${taka(best.k.profit)}</b></div>`:''}<div class="note">সবুজ দাগ = বিক্রি, নীল দাগ = কেনা</div></div>`}
 function repRange(){const t=state.repTab;
  if(t==='day')return{from:state.repDate,to:state.repDate,label:fmtDate(state.repDate)+' · '+fmtDay(state.repDate)};
  if(t==='week'){const f=addDays(state.repDate,-((parse(state.repDate).getDay()+1)%7));const to=addDays(f,6);return{from:f,to,label:fmtShort(f)+' থেকে '+fmtDate(to)}}
@@ -562,14 +565,15 @@ function profilePage(){const p=db.profile,kb=(JSON.stringify(db).length/1024).to
  <div class="card k-gold"><h3 class="sec">♻️ ব্যাকআপ থেকে ফিরিয়ে আনুন</h3>
  <label>ব্যাকআপ ফাইল থেকে ফিরিয়ে আনুন</label><input type="file" id="rf" accept=".json,application/json,text/plain" onchange="restoreFile(this)" style="height:auto;padding:12px">
  <div style="margin-top:10px"><button class="btn gray sm" onclick="pasteSheet()">📥 কপি করা ব্যাকআপ বসান</button></div></div>
- <div class="card"><h3 class="sec">🧪 অন্যান্য</h3><div class="stack"><button class="btn line k-buy sm" onclick="ask('বর্তমান সব ডেটা মুছে নমুনা ডেটা বসবে। চালিয়ে যাবেন?',demo,'হ্যাঁ, নমুনা দিন')">নমুনা ডেটা দিয়ে অ্যাপ দেখুন</button>
+ ${archCard()}<div class="card"><h3 class="sec">🧪 অন্যান্য</h3><div class="stack"><button class="btn line k-buy sm" onclick="ask('বর্তমান সব ডেটা মুছে নমুনা ডেটা বসবে। চালিয়ে যাবেন?',demo,'হ্যাঁ, নমুনা দিন')">নমুনা ডেটা দিয়ে অ্যাপ দেখুন</button>
  <button class="btn red sm" onclick="ask('সব ডেটা চিরতরে মুছে যাবে! আগে ব্যাকআপ নিয়েছেন তো?',wipe,'হ্যাঁ, সব মুছুন')">🗑 সব ডেটা মুছুন</button></div></div>`}
 function saveProfile(){db.profile={shop:v('pf_shop').trim()||'মেসার্স আলমগীর এন্টারপ্রাইজ',owner:v('pf_owner').trim(),phone:toLat(v('pf_phone')).trim(),addr:v('pf_addr').trim()};commit('প্রোফাইল সংরক্ষিত ✔')}
 const backupJSON=()=>JSON.stringify({app:'alamgir-enterprise',version:1,exportedAt:new Date().toISOString(),data:db},null,1);
 function markBackup(){db.meta.lastBackup=todayStr();save();if(state.page==='profile')render()}
-async function doBackup(){let ok=false;
- try{const dl=window.claude&&await window.claude.use('downloads');if(dl){await dl.save({filename:'alamgir-backup-'+todayStr()+'.json',data:backupJSON()});ok=true}}catch(e){if(e&&e.code==='declined')return}
- if(ok){markBackup();toast('ব্যাকআপ সংরক্ষিত ✔')}else copyBackup()}
+function downloadText(name,text){const u=URL.createObjectURL(new Blob([text],{type:'application/json'}));const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{a.remove();URL.revokeObjectURL(u)},2000)}
+async function doBackup(){
+ try{downloadText('alamgir-backup-'+todayStr()+'.json',backupJSON());markBackup();toast('ব্যাকআপ ফাইল Downloads ফোল্ডারে সেভ হয়েছে ✔')}
+ catch(e){copyBackup()}}
 async function copyBackup(){const t=backupJSON();
  try{await navigator.clipboard.writeText(t);markBackup();toast('ব্যাকআপ কপি হয়েছে — নোটস/হোয়াটসঅ্যাপে সেভ করুন ✔')}
  catch(e){openSheet('ব্যাকআপ লেখা',`<div class="mut">নিচের লেখা সব সিলেক্ট করে কপি করে রাখুন।</div><textarea id="bk_txt" readonly onfocus="this.select()">${esc(t)}</textarea><div style="margin-top:12px"><button class="btn" onclick="markBackup();closeSheet()">কপি করেছি</button></div>`)}}
@@ -594,6 +598,39 @@ function demo(){const t=todayStr();db=defaults();db.profile.owner='আলমগ�
  db.emptx.push({id:uid(),date:addDays(t,-3),empId:'s1',type:'adv',ref:'adv',amount:3000,note:'ঈদ খরচ'},{id:uid(),date:addDays(t,-1),empId:'s2',type:'fish',ref:'fish',amount:30000,note:''},{id:uid(),date:t,empId:'s2',type:'ret',ref:'fish',amount:1000,note:''});
  state.date=t;commit('নমুনা ডেটা বসানো হয়েছে')}
 
+
+/* ===== পুরোনো বছর আর্কাইভ ===== */
+const ARCH_DATED=['fish','ledger','emptx','ice','exp'];
+function archYears(){const ys=new Set();ARCH_DATED.forEach(k=>db[k].forEach(x=>{if(x.date&&!x.open)ys.add(x.date.slice(0,4))}));Object.keys(db.att).forEach(k=>ys.add(k.split('|')[0].slice(0,4)));return[...ys].sort()}
+function archCount(Y){const cut=Y+'-01-01';let n=0;ARCH_DATED.forEach(k=>{n+=db[k].filter(x=>x.date<cut&&!x.open).length});return n+Object.keys(db.att).filter(k=>k.split('|')[0]<cut).length}
+function archCard(){const thisY=todayStr().slice(0,4),ab=db.meta.archivedBefore;
+ const cand=[...new Set(archYears().concat([thisY]))].filter(y=>y<=thisY&&archCount(y)>0).sort();
+ const head='<div class="card"><h3 class="sec">🗄️ পুরোনো বছর আর্কাইভ</h3>';
+ const done=ab?`<div class="note">এই অ্যাপে ${bnd(ab.slice(0,4))} সালের আগের হিসাব আর্কাইভ করা হয়েছে (ব্যাকআপ ফাইলে আছে)।</div>`:'';
+ if(!cand.length)return head+(ab?done:'<div class="mut">এখনও সরানোর মতো পুরোনো বছর নেই। আগের বছরের হিসাব জমলে এখানে সরানোর অপশন আসবে।</div>')+'</div>';
+ const Y=cand.includes(state.archY)?state.archY:cand[0],n=archCount(Y),got=state.archBk===Y;
+ return head+done+`<div class="mut" style="margin-bottom:8px">পুরোনো বছরের এন্ট্রি অ্যাপ ও ক্লাউড থেকে সরিয়ে জায়গা খালি করা যায়। কাস্টমারের বাকি, কর্মচারীর পাওনা ও বরফের স্টক ঠিক থাকবে।</div>
+ <label>কোন সাল থেকে রাখবেন?</label><select onchange="state.archY=this.value;state.archBk='';render()">${cand.map(y=>`<option value="${y}" ${y===Y?'selected':''}>${bnd(y)} সাল থেকে</option>`).join('')}</select>
+ <div class="kv" style="margin-top:8px"><span>${bnd(Y)} সালের আগের এন্ট্রি</span><b>${bnd(n)} টি সরবে</b></div>
+ <div class="stack" style="margin-top:10px"><button class="btn gold sm" onclick="archBackup('${Y}')">${got?'✅ ব্যাকআপ নেওয়া হয়েছে':'১. আগে ব্যাকআপ ফাইল নিন'}</button>
+ <button class="btn red sm" onclick="archAsk('${Y}')">২. ব্যাকআপ নিয়েছি, এখন সরান</button></div>
+ <div class="note">ব্যাকআপ ফাইল ফোনের Downloads ফোল্ডারে সেভ হবে। সেটি Google Drive বা হোয়াটসঅ্যাপে নিজেকে পাঠিয়ে রাখুন, না হলে সরানো হিসাব আর ফেরত পাবেন না।</div></div>`}
+function archBackup(Y){downloadText('alamgir-archive-'+Y+'-'+todayStr()+'.json',backupJSON());state.archBk=Y;render();toast('ব্যাকআপ ফাইল Downloads-এ সেভ হয়েছে। এবার নিরাপদ জায়গায় পাঠিয়ে রাখুন ✔')}
+function archAsk(Y){if(state.archBk!==Y)return toast('আগে ধাপ ১ — ব্যাকআপ ফাইল নিন','err');
+ ask(bnd(Y)+' সালের আগের '+bnd(archCount(Y))+' টি এন্ট্রি অ্যাপ ও ক্লাউড থেকে সরে যাবে। ব্যাকআপ ফাইলটি নিরাপদ জায়গায় রেখেছেন তো?',()=>archiveBefore(Y),'হ্যাঁ, সরান')}
+function archiveBefore(Y){
+ const cut=Y+'-01-01',open=addDays(cut,-1),yr=Number(Y),note=bnd(Y)+' সালের আগের জের',rd=x=>Math.round(x*100)/100;
+ const nl=[],ne=[],ni=[];
+ db.customers.forEach(c=>{const b=rd(custStats(c.id,open).bal);if(b!==0)nl.push({id:'open'+Y+'_c_'+c.id,date:open,custId:c.id,type:b>0?'due':'pay',amount:Math.abs(b),note,open:yr})});
+ db.staff.forEach(s=>{const z=empStats(s.id,open),a=rd(z.advRem),f=rd(z.fishRem);
+  if(a!==0)ne.push({id:'open'+Y+'_ea_'+s.id,date:open,empId:s.id,type:a>0?'adv':'ret',ref:'adv',amount:Math.abs(a),note,open:yr});
+  if(f!==0)ne.push({id:'open'+Y+'_ef_'+s.id,date:open,empId:s.id,type:f>0?'fish':'ret',ref:'fish',amount:Math.abs(f),note,open:yr})});
+ const st=iceStock(open);if(st!==0)ni.push({id:'open'+Y+'_ice',date:open,type:st>0?'in':'use',qty:Math.abs(st),rate:0,note,open:yr});
+ ARCH_DATED.forEach(k=>{db[k]=db[k].filter(x=>!(x.date<cut))});
+ Object.keys(db.att).forEach(k=>{if(k.split('|')[0]<cut)delete db.att[k]});
+ db.ledger.push(...nl);db.emptx.push(...ne);db.ice.push(...ni);
+ db.meta.archivedBefore=cut;state.archBk='';state.archY='';
+ commit(bnd(Y)+' সালের আগের হিসাব সরানো হয়েছে ✔')}
 
 /* ===== ক্লাউড সিঙ্ক (সহায়ক) ===== */
 const CLOUD_FLAG='alamgir_cloud_ok';
