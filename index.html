@@ -53,7 +53,7 @@ main{max-width:560px;margin:0 auto;padding:12px 14px 120px}
 .dpick small{display:block;font-weight:500;color:var(--mut);font-size:12px}
 .dpick input{position:absolute;inset:0;width:100%;height:100%;opacity:0;font-size:16px}
 .today{height:52px;border-radius:14px;border:0;background:var(--gold);color:#2A1F05;font-weight:700;padding:0 12px;flex:none}
-.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
 .tile{background:var(--card);border:1px solid var(--line);border-top:5px solid var(--c);border-radius:16px;padding:10px 2px;display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:600;font-size:13px;min-height:84px;color:var(--ink)}
 .tile .e{font-size:28px}
 h3.sec{font:700 18px/1.3 'Hind Siliguri';margin:4px 0 10px;color:var(--ct,var(--ink))}
@@ -184,15 +184,15 @@ const FISH=['ইলিশ','রুই','কাতলা','পাঙ্গাস'
 const bnd=s=>String(s).replace(/\d/g,d=>BD[d]);
 const toLat=s=>String(s).replace(/[০-৯]/g,c=>BD.indexOf(c));
 function defaults(){return{profile:{shop:'মেসার্স আলমগীর এন্টারপ্রাইজ',owner:'',phone:'',addr:''},fish:[],customers:[],ledger:[],
-staff:[1,2,3,4,5,6].map(i=>({id:'s'+i,name:'কর্মচারী '+bnd(i),phone:''})),att:{},emptx:[],ice:[],exp:[],meta:{lastBackup:''}}}
+staff:[1,2,3,4,5,6].map(i=>({id:'s'+i,name:'কর্মচারী '+bnd(i),phone:''})),att:{},emptx:[],ice:[],exp:[],dep:[],change:{},meta:{lastBackup:''}}}
 function load(){try{const r=localStorage.getItem(KEY);if(r)return Object.assign(defaults(),JSON.parse(r))}catch(e){memOnly=true}return defaults()}
 let db=load();
 let lastStamp=(db.meta&&db.meta.updatedAt)||0;
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){memOnly=true}}
 /* দুই কপি (অ্যাপ + ব্রাউজার ট্যাব) মেলানো: একই id-র এন্ট্রি হলে 'a' (আমার) জেতে, বাকিগুলো দুই দিক থেকেই থাকে */
 function mergeDb(a,b){const out=Object.assign({},b,a);
- ['fish','customers','ledger','emptx','ice','exp','staff'].forEach(k=>{const x=Array.isArray(a[k])?a[k]:[],y=Array.isArray(b[k])?b[k]:[];const ids=new Set(x.map(i=>i&&i.id));out[k]=x.concat(y.filter(i=>i&&(i.id?!ids.has(i.id):!x.some(j=>JSON.stringify(j)===JSON.stringify(i)))))});
- out.att=Object.assign({},b.att||{},a.att||{});out.profile=Object.assign({},b.profile||{},a.profile||{});out.meta=Object.assign({},b.meta||{},a.meta||{});
+ ['fish','customers','ledger','emptx','ice','exp','staff','dep'].forEach(k=>{const x=Array.isArray(a[k])?a[k]:[],y=Array.isArray(b[k])?b[k]:[];const ids=new Set(x.map(i=>i&&i.id));out[k]=x.concat(y.filter(i=>i&&(i.id?!ids.has(i.id):!x.some(j=>JSON.stringify(j)===JSON.stringify(i)))))});
+ out.att=Object.assign({},b.att||{},a.att||{});out.change=Object.assign({},b.change||{},a.change||{});out.profile=Object.assign({},b.profile||{},a.profile||{});out.meta=Object.assign({},b.meta||{},a.meta||{});
  const ab=[(a.meta||{}).archivedBefore,(b.meta||{}).archivedBefore].filter(Boolean).sort().pop();
  if(ab){const yr=Number(ab.slice(0,4));['fish','ledger','emptx','ice','exp'].forEach(k=>{out[k]=out[k].filter(x=>!x.date||x.date>=ab||x.open===yr)});Object.keys(out.att).forEach(k=>{if(k.split('|')[0]<ab)delete out.att[k]});out.meta.archivedBefore=ab}
  return out}
@@ -264,7 +264,7 @@ const iceStock=d=>sum(db.ice.filter(i=>i.date<=d),i=>i.type==='in'?i.qty:-i.qty)
 /* ===== অবস্থা ও নেভিগেশন ===== */
 const state={page:'home',date:todayStr(),txnTab:'buy',staffTab:'att',repTab:'day',repDate:todayStr(),repMonth:todayStr().slice(0,7),repYear:todayStr().slice(0,4),custQ:'',lastFrom:''};
 const NAV=[['home','🏠','হোম'],['txn','🐟','লেনদেন'],['baki','💰','বাকি খাতা'],['staff','👨‍💼','কর্মচারী'],['report','📊','রিপোর্ট']];
-const NAVMAP={ice:'home',expense:'home',profile:'home'};
+const NAVMAP={ice:'home',expense:'home',profile:'home',deposit:'home'};
 function go(p,o){Object.assign(state,o||{});state.page=p;render();window.scrollTo(0,0)}
 function setDate(d){if(d){state.date=d;render()}}
 function shiftDate(n){state.date=addDays(state.date,n);render()}
@@ -272,7 +272,7 @@ function commit(m){save();render();if(m)toast(m)}
 function render(){
  const y=window.scrollY;
  $('#shopName').textContent=db.profile.shop||'মেসার্স আলমগীর এন্টারপ্রাইজ';
- const P={home:homePage,txn:txnPage,baki:bakiPage,staff:staffPage,report:reportPage,ice:icePage,expense:expensePage,profile:profilePage};
+ const P={home:homePage,txn:txnPage,baki:bakiPage,staff:staffPage,report:reportPage,ice:icePage,expense:expensePage,profile:profilePage,deposit:depositPage};
  $('#app').innerHTML=P[state.page]();
  const cur=NAVMAP[state.page]||state.page;
  $('#nav').innerHTML=NAV.map(n=>`<button class="${n[0]===cur?'on':''}" onclick="go('${n[0]}')"><span class="ic">${n[1]}</span>${n[2]}</button>`).join('');
@@ -300,10 +300,13 @@ function homePage(){
  return dateBar()+nudge+`
  <div class="cash"><div class="lb">💵 ${lab} নগদ টাকা (আসা − গেছে)</div><div class="big">${taka(c.cash)}</div>
  <div class="sub"><span>⬇ আসা ${taka(c.cashIn)}</span><span>⬆ গেছে ${taka(c.cashOut)}</span></div></div>
+ <div class="card k-gold stat"><div class="sl">🪙 ক্যাশে ভাংতি টাকা (${fmtShort(d)})</div><div class="sv">${(db.change||{})[d]!=null?taka(db.change[d]):'দেওয়া হয়নি'}</div>
+ <div class="minis" style="grid-template-columns:1fr 1fr"><div class="mini"><b>${taka(((db.change||{})[d]||0)+c.cash)}</b>ক্যাশে মোট (ভাংতি + নগদ)</div><div class="mini"><b>${taka(c.cash)}</b>নগদ (আসা − গেছে)</div></div>
+ <div style="margin-top:10px"><button class="btn gold sm" onclick="changeSheet()">✏️ আজকের ভাংতি টাকা লিখুন</button></div></div>
  <div class="grid2">
  ${stat('buy','🛒',lab+' কেনা',taka(c.buy),bnNum(c.buyKg)+' কেজি')}
  ${stat('sell','💵',lab+' বিক্রি',taka(c.sell),bnNum(c.sellKg)+' কেজি')}
- ${stat('gold','📈','আনুমানিক লাভ',taka(c.profit),'সব খরচ বাদে',c.profit<0)}
+ ${c.profit<0?stat('exp','📉','আনুমানিক ক্ষতি','-'+taka(Math.abs(c.profit)),'সব খরচ বাদে',true):stat('gold','📈','আনুমানিক লাভ','+'+taka(c.profit),'সব খরচ বাদে')}
  ${stat('due','💰','মোট বাকি',taka(baki),'কাস্টমারের কাছে পাওনা')}
  </div>
  <h3 class="sec">দ্রুত এন্ট্রি</h3>
@@ -315,6 +318,7 @@ function homePage(){
  <button class="tile k-ice" onclick="go('ice')"><span class="e">🧊</span>বরফ</button>
  <button class="tile k-exp" onclick="go('expense')"><span class="e">🧾</span>খরচ</button>
  <button class="tile k-rep" onclick="go('report')"><span class="e">📊</span>রিপোর্ট</button>
+ <button class="tile k-sell" onclick="go('deposit')"><span class="e">🏦</span>জমা-প্রদান</button>
  <button class="tile k-gold" onclick="doBackup()"><span class="e">💾</span>ব্যাকআপ</button>
  </div>
  <div class="card"><h3 class="sec">এই দিনের সর্বশেষ এন্ট্রি</h3>${todays.length?todays.map(fishRow).join(''):'<div class="empty">এই তারিখে কোনো মাছের এন্ট্রি নেই।<br>উপরের “মাছ কেনা” বা “মাছ বিক্রি” চাপুন।</div>'}</div>`}
@@ -518,6 +522,38 @@ function saveIce(type){const pr=type!=='use',q=num('i_qty'),r=pr?num('i_rate'):0
  db.ice.push({id:uid(),date:state.date,type,qty:q,rate:r,note:v('i_note').trim()});closeSheet();commit('সংরক্ষিত ✔')}
 function delIce(id){ask('এই এন্ট্রি মুছবেন?',()=>{db.ice=db.ice.filter(i=>i.id!==id);commit('মুছে ফেলা হয়েছে')})}
 
+/* ===== ক্যাশে ভাংতি টাকা (প্রতিদিন আলাদা; লাভ-ক্ষতি/রিপোর্টে ঢোকে না) ===== */
+function changeSheet(){const d=state.date,cur=(db.change||{})[d];let prev=null;Object.keys(db.change||{}).filter(k=>k<d).sort().forEach(k=>prev=db.change[k]);
+ openSheet('ক্যাশে ভাংতি টাকা',`<div class="mut">তারিখ ${fmtDate(d)}</div><label>আজ ক্যাশে ভাংতি কত টাকা (৳)</label><input id="ch_amt" inputmode="decimal" placeholder="০" value="${cur!=null?cur:''}">${prev!=null?`<div class="chips"><button class="chip" onclick="document.getElementById('ch_amt').value='${prev}'">আগের দিনের ${taka(prev)}</button></div>`:''}
+ <div class="note">ভাংতি টাকা শুধু “ক্যাশে মোট” দেখাতে কাজে লাগে। লাভ-ক্ষতি বা রিপোর্টের সাথে যোগ হয় না।</div>
+ <div class="btnrow"><button class="btn gray" onclick="closeSheet()">বাতিল</button><button class="btn gold" onclick="saveChange()">সংরক্ষণ</button></div>`,'k-gold')}
+function saveChange(){const t=v('ch_amt').trim();if(!db.change)db.change={};if(t==='')delete db.change[state.date];else db.change[state.date]=Math.max(0,num('ch_amt'));closeSheet();commit('সংরক্ষিত ✔')}
+
+/* ===== টাকা জমা ও প্রদান (আলাদা হিসাব; অন্য কোনো হিসাবে যোগ-বিয়োগ হয় না) ===== */
+const isOut=x=>x.type==='out';
+const depIn=a=>sum(a.filter(x=>!isOut(x)),x=>x.amount),depOut=a=>sum(a.filter(isOut),x=>x.amount);
+function depRow(x,showDate){const o=isOut(x);
+ return `<div class="item"><div class="grow"><b>${showDate?fmtShort(x.date)+' · ':''}${o?'⬆ টাকা প্রদান':'⬇ টাকা জমা'}</b>${x.note?`<div class="mut">📝 ${esc(x.note)}</div>`:''}</div><div class="amt" style="color:var(${o?'--exp-t':'--sell-t'})">${o?'−':'+'}${taka(x.amount)}</div><button class="del" onclick="delDep('${x.id}')" aria-label="মুছুন">🗑</button></div>`}
+function depositPage(){const d=state.date,m=state.depMonth||d.slice(0,7),y=Number(m.slice(0,4)),mm=Number(m.slice(5,7));
+ const day=db.dep.filter(x=>x.date===d),mon=db.dep.filter(x=>x.date.slice(0,7)===m).sort((a,b)=>b.date.localeCompare(a.date));
+ return backBar('🏦 টাকা জমা ও প্রদান','k-sell')+dateBar()+`<div class="k-sell">
+ <div class="btnrow" style="margin:0 0 12px"><button class="btn" onclick="depSheet('in')">⬇ টাকা জমা</button><button class="btn red" onclick="depSheet('out')">⬆ টাকা প্রদান</button></div>
+ <div class="card stat"><div class="sl">${fmtShort(d)} তারিখ</div><div class="minis"><div class="mini"><b>${taka(depIn(day))}</b>জমা</div><div class="mini"><b>${taka(depOut(day))}</b>প্রদান</div><div class="mini"><b>${taka(depIn(day)-depOut(day))}</b>অবশিষ্ট</div></div></div>
+ <div class="card"><h3 class="sec">এই দিনের এন্ট্রি</h3>${day.length?day.slice().reverse().map(x=>depRow(x,false)).join(''):'<div class="empty">এই তারিখে কোনো এন্ট্রি নেই</div>'}</div>
+ <h3 class="sec">📆 মাস শেষের হিসাব</h3>
+ <div class="datebar"><button class="nb" onclick="depShift(-1)">‹</button><div class="dpick"><span>${MONTHS[mm-1]} ${bnd(y)}</span></div><button class="nb" onclick="depShift(1)">›</button></div>
+ <div class="card stat"><div class="sl">${MONTHS[mm-1]} মাস</div><div class="minis"><div class="mini"><b>${taka(depIn(mon))}</b>মোট জমা</div><div class="mini"><b>${taka(depOut(mon))}</b>মোট প্রদান</div><div class="mini"><b>${taka(depIn(mon)-depOut(mon))}</b>মাসের অবশিষ্ট</div></div></div>
+ <div class="card stat"><div class="sl">এ পর্যন্ত সর্বমোট অবশিষ্ট (জমা − প্রদান)</div><div class="sv">${taka(depIn(db.dep)-depOut(db.dep))}</div></div>
+ <div class="card"><h3 class="sec">${MONTHS[mm-1]} মাসের তালিকা</h3>${mon.length?mon.map(x=>depRow(x,true)).join(''):'<div class="empty">এই মাসে কোনো এন্ট্রি নেই</div>'}</div>
+ <div class="note">এই হিসাব সম্পূর্ণ আলাদা — নগদ টাকা, লাভ বা অন্য কোনো হিসাবের সাথে যোগ-বিয়োগ হয় না।</div></div>`}
+function depShift(n){const m=state.depMonth||state.date.slice(0,7);const d=new Date(Number(m.slice(0,4)),Number(m.slice(5,7))-1+n,1);state.depMonth=d.getFullYear()+'-'+pad(d.getMonth()+1);render()}
+function depSheet(type){const o=type==='out';
+ openSheet(o?'টাকা প্রদান':'টাকা জমা',`<div class="mut">তারিখ ${fmtDate(state.date)}</div><label>${o?'প্রদানের':'জমার'} পরিমাণ (৳)</label><input id="dp_amt" inputmode="decimal" placeholder="০">
+ <label>নোট</label><input id="dp_note" placeholder="${o?'কাকে/কেন দিলাম':'যেমন: ব্যাংকে জমা'}">
+ <div class="btnrow"><button class="btn gray" onclick="closeSheet()">বাতিল</button><button class="btn ${o?'red':'k-sell'}" onclick="saveDep('${type}')">সংরক্ষণ</button></div>`,'k-sell')}
+function saveDep(type){const a=num('dp_amt');if(!(a>0))return toast('টাকার পরিমাণ লিখুন','err');db.dep.push({id:uid(),date:state.date,type,amount:a,note:v('dp_note').trim()});closeSheet();commit('সংরক্ষিত ✔')}
+function delDep(id){ask('এই এন্ট্রি মুছবেন?',()=>{db.dep=db.dep.filter(x=>x.id!==id);commit('মুছে ফেলা হয়েছে')})}
+
 /* ===== আয়-ব্যয় ===== */
 const CATS=[['দোকান ভাড়া','🏪'],['পরিবহন','🚚'],['শ্রমিক খরচ','👷'],['বিদ্যুৎ ও পানি','💡'],['অন্যান্য খরচ','🧾']];
 function expensePage(){const d=state.date,c=calc(d,d),m=d.slice(0,7),mc=calc(m+'-01',m+'-31'),list=db.exp.filter(e=>e.date===d);
@@ -574,7 +610,7 @@ function yearRows(r){const y=Number(state.repYear),list=[];
  for(let m=1;m<=12;m++){const f=y+'-'+pad(m)+'-01',t=y+'-'+pad(m)+'-'+pad(new Date(y,m,0).getDate());const k=calc(f,t);if(k.sell||k.buy||k.cost||k.iceSellAmt)list.push({m,k})}
  const mx=Math.max(1,...list.map(x=>Math.max(x.k.sell,x.k.buy)));
  const best=list.length?list.reduce((a,b)=>b.k.profit>a.k.profit?b:a):null;
- return`<div class="card"><h3 class="sec">মাস অনুযায়ী</h3>${list.length?list.map(({m,k})=>`<div class="dayrow"><div class="t"><span>${MONTHS[m-1]}</span><span style="color:var(--${k.profit<0?'exp':'sell'}-t)">${k.profit<0?'ক্ষতি ':'লাভ '}${taka(Math.abs(k.profit))}</span></div>
+ return`<div class="card"><h3 class="sec">মাস অনুযায়ী</h3>${list.length?list.map(({m,k})=>`<div class="dayrow"><div class="t"><span>${MONTHS[m-1]}</span><span style="color:var(--${k.profit<0?'exp':'sell'}-t)">${k.profit<0?'ক্ষতি -':'লাভ +'}${taka(Math.abs(k.profit))}</span></div>
  <div class="mut">বিক্রি ${taka(k.sell)} · কেনা ${taka(k.buy)} · খরচ ${taka(k.cost)}</div><div class="k-sell" style="margin-top:4px"><div class="bar" style="width:${k.sell/mx*100}%"></div></div><div class="k-buy" style="margin-top:3px"><div class="bar" style="width:${k.buy/mx*100}%"></div></div></div>`).join(''):`<div class="empty">${(db.meta.archivedBefore&&state.repYear<db.meta.archivedBefore.slice(0,4))?'এই বছরের হিসাব আর্কাইভ করা হয়েছে (ব্যাকআপ ফাইলে আছে)':'এই বছরে কোনো হিসাব নেই'}</div>`}${best&&best.k.profit>0?`<div class="kv tot"><span>সবচেয়ে বেশি লাভ</span><b>${MONTHS[best.m-1]} · ${taka(best.k.profit)}</b></div>`:''}<div class="note">সবুজ দাগ = বিক্রি, নীল দাগ = কেনা</div></div>`}
 function repRange(){const t=state.repTab;
  if(t==='day')return{from:state.repDate,to:state.repDate,label:fmtDate(state.repDate)+' · '+fmtDay(state.repDate)};
@@ -589,14 +625,14 @@ function reportPage(){const t=state.repTab,r=repRange(),c=calc(r.from,r.to),mult
  const names={};db.fish.filter(x=>x.date>=r.from&&x.date<=r.to).forEach(x=>{const n=names[x.name]||(names[x.name]={bk:0,ba:0,sk:0,sa:0});if(x.type==='buy'){n.bk+=x.kg;n.ba+=x.kg*x.rate}else{n.sk+=x.kg;n.sa+=x.kg*x.rate}});
  let days='';if(t==='year'){days=yearRows(r)}else if(multi){const list=[];for(let d=r.from;d<=r.to;d=addDays(d,1)){const k=calc(d,d);if(k.sell||k.buy||k.cost||k.iceSellAmt)list.push({d,k})}
   const mx=Math.max(1,...list.map(x=>Math.max(x.k.sell,x.k.buy)));
-  days=`<div class="card"><h3 class="sec">দিন অনুযায়ী</h3>${list.length?list.map(({d,k})=>`<div class="dayrow"><div class="t"><span>${fmtShort(d)} · ${fmtDay(d)}</span><span style="color:var(--${k.profit<0?'exp':'sell'}-t)">${k.profit<0?'ক্ষতি ':'লাভ '}${taka(Math.abs(k.profit))}</span></div>
+  days=`<div class="card"><h3 class="sec">দিন অনুযায়ী</h3>${list.length?list.map(({d,k})=>`<div class="dayrow"><div class="t"><span>${fmtShort(d)} · ${fmtDay(d)}</span><span style="color:var(--${k.profit<0?'exp':'sell'}-t)">${k.profit<0?'ক্ষতি -':'লাভ +'}${taka(Math.abs(k.profit))}</span></div>
   <div class="mut">বিক্রি ${taka(k.sell)} · কেনা ${taka(k.buy)} · খরচ ${taka(k.cost)}</div><div class="k-sell" style="margin-top:4px"><div class="bar" style="width:${k.sell/mx*100}%"></div></div><div class="k-buy" style="margin-top:3px"><div class="bar" style="width:${k.buy/mx*100}%"></div></div></div>`).join(''):'<div class="empty">এই সময়ে কোনো হিসাব নেই</div>'}<div class="note">সবুজ দাগ = বিক্রি, নীল দাগ = কেনা</div></div>`}
  const kvs=a=>a.map(x=>`<div class="kv"><span>${x[0]}</span><b>${x[1]}</b></div>`).join('');
  return `<div class="seg k-rep"><button class="${t==='day'?'on':''}" onclick="go('report',{repTab:'day'})">📅<br>দৈনিক</button><button class="${t==='week'?'on':''}" onclick="go('report',{repTab:'week'})">🗓️<br>সাপ্তাহিক</button><button class="${t==='month'?'on':''}" onclick="go('report',{repTab:'month'})">📆<br>মাসিক</button><button class="${t==='year'?'on':''}" onclick="go('report',{repTab:'year'})">📖<br>বার্ষিক</button></div>
  <div class="datebar"><button class="nb" onclick="repShift(-1)">‹</button>${(t==='month'||t==='year')?`<div class="dpick"><span>${r.label}</span></div>`:`<label class="dpick"><span>${r.label}${t==='week'?'<small>সপ্তাহ (শনি–শুক্র)</small>':''}</span><input type="date" value="${state.repDate}" onchange="if(this.value){state.repDate=this.value;render()}"></label>`}<button class="nb" onclick="repShift(1)">›</button></div>
  <div class="btnrow" style="margin:0 0 12px"><button class="btn" onclick="shareReport()">📤 শেয়ার করুন</button><button class="btn gray" onclick="copyReport()">📋 লেখা কপি</button></div>
  <div class="grid2"><div class="k-buy">${stat('buy','🛒','মোট কেনা',taka(c.buy),bnNum(c.buyKg)+' কেজি')}</div><div class="k-sell">${stat('sell','💵','মোট বিক্রি',taka(c.sell),bnNum(c.sellKg)+' কেজি')}</div>
- ${stat('exp','🧾','মোট খরচ',taka(c.cost))}${stat(c.profit<0?'exp':'green',c.profit<0?'📉':'📈',c.profit<0?'ক্ষতি':'লাভ',taka(Math.abs(c.profit)),c.iceSellAmt>0?'বিক্রি + বরফ বিক্রি − কেনা − খরচ':'বিক্রি − কেনা − খরচ')}</div>
+ ${stat('exp','🧾','মোট খরচ',taka(c.cost))}${stat(c.profit<0?'exp':'green',c.profit<0?'📉':'📈',c.profit<0?'ক্ষতি':'লাভ',(c.profit<0?'-':'+')+taka(Math.abs(c.profit)),c.iceSellAmt>0?'বিক্রি + বরফ বিক্রি − কেনা − খরচ':'বিক্রি − কেনা − খরচ')}</div>
  <div class="card"><h3 class="sec">💵 বিক্রি ও বাকি</h3>${kvs([['নগদ পেয়েছি',taka(c.recv)],['বাকি রেখেছি',taka(c.due)],['পুরনো বাকি আদায়',taka(c.collect)],...(c.iceSellAmt>0?[['🧊 বরফ বাইরে বিক্রি (নগদ)',taka(c.iceSellAmt)]]:[])])}</div>
  <div class="card"><h3 class="sec">🧾 খরচের বিবরণ</h3>${kvs([...CATS.map(x=>[x[1]+' '+x[0],taka(c.expBy[x[0]]||0)]),['👷 শ্রমিক (হাজিরা থেকে)',taka(c.att)],['🧊 বরফ ক্রয়',taka(c.iceCost)]])}<div class="kv tot"><span>মোট খরচ</span><b>${taka(c.cost)}</b></div></div>
  <div class="card"><h3 class="sec">💵 নগদ টাকার প্রবাহ</h3>${kvs([['আসা',taka(c.cashIn)],['গেছে',taka(c.cashOut)]])}<div class="kv tot"><span>নগদ (আসা − গেছে)</span><b>${taka(c.cash)}</b></div></div>
