@@ -554,6 +554,31 @@ function depSheet(type){const o=type==='out';
 function saveDep(type){const a=num('dp_amt');if(!(a>0))return toast('টাকার পরিমাণ লিখুন','err');db.dep.push({id:uid(),date:state.date,type,amount:a,note:v('dp_note').trim()});closeSheet();commit('সংরক্ষিত ✔')}
 function delDep(id){ask('এই এন্ট্রি মুছবেন?',()=>{db.dep=db.dep.filter(x=>x.id!==id);commit('মুছে ফেলা হয়েছে')})}
 
+/* ===== হোয়াটসঅ্যাপে দৈনিক হিসাব পাঠানো ===== */
+function waText(d){const c=calc(d,d),baki=totalBaki(d),ch=(db.change||{})[d],L=[];
+ L.push('📒 *'+(db.profile.shop||'মেসার্স আলমগীর এন্টারপ্রাইজ')+'*','📅 '+fmtDate(d)+' ('+fmtDay(d)+')','━━━━━━━━━━');
+ L.push('🛒 কেনা: '+taka(c.buy)+' ('+bnNum(c.buyKg)+' কেজি)','💵 বিক্রি: '+taka(c.sell)+' ('+bnNum(c.sellKg)+' কেজি)','   • নগদ পেয়েছি: '+taka(c.recv),'   • বাকি রেখেছি: '+taka(c.due));
+ if(c.iceSellAmt>0)L.push('🧊 বরফ বিক্রি: '+taka(c.iceSellAmt));
+ L.push('🧾 মোট খরচ: '+taka(c.cost),(c.profit<0?'📉 ক্ষতি: -':'📈 লাভ: +')+taka(Math.abs(c.profit)),'━━━━━━━━━━','💰 বাকি আদায়: '+taka(c.collect),'💵 নগদ (আসা − গেছে): '+taka(c.cash));
+ if(ch!=null)L.push('🪙 ভাংতি: '+taka(ch),'🏧 ক্যাশে মোট: '+taka(ch+c.cash));
+ L.push('📌 মোট বাকি (পাওনা): '+taka(baki),'🧊 বরফ অবশিষ্ট: '+bnNum(iceStock(d))+' টি');
+ return L.join('\n')}
+function waSheet(d){const n=(db.profile&&db.profile.wa)||'';
+ openSheet('📲 হোয়াটসঅ্যাপে হিসাব পাঠান',`<div class="mut">${fmtDate(d)} তারিখের হিসাব। পাঠানোর আগে লেখা বদলাতে পারেন।</div>
+ <textarea id="wa_txt" style="height:260px;font-size:15px;margin-top:8px">${esc(waText(d))}</textarea>
+ <label>হোয়াটসঅ্যাপ নম্বর (ফাঁকা রাখলে নিজে বেছে নেবেন)</label><input id="wa_num" inputmode="tel" placeholder="০১৭…" value="${esc(n)}">
+ <div class="stack" style="margin-top:12px"><button class="btn" style="background:#25D366;color:#06301a" onclick="waSend()">📲 হোয়াটসঅ্যাপে পাঠান</button><button class="btn gray sm" onclick="waCopy()">📋 লেখা কপি করুন</button></div>
+ <div class="note">নম্বর একবার দিলে মনে থাকবে। বাটন চাপলে হোয়াটসঅ্যাপ খুলবে, সেখানে “Send” চাপলেই যাবে।</div>`,'k-sell')}
+function waCard(){const n=(db.profile&&db.profile.wa)||'';
+ return `<div class="card k-sell"><h3 class="sec">📲 হোয়াটসঅ্যাপে হিসাব পাঠান</h3><label>কোন তারিখের হিসাব</label><input type="date" id="wa_date" value="${todayStr()}">
+ <label>হোয়াটসঅ্যাপ নম্বর (একবার দিলে মনে থাকবে)</label><input id="wa_n0" inputmode="tel" value="${esc(n)}" placeholder="০১৭…" onchange="saveWaNum(this.value)">
+ <div style="margin-top:12px"><button class="btn" style="background:#25D366;color:#06301a" onclick="waSheet(v('wa_date')||todayStr())">📲 হিসাব তৈরি করুন</button></div></div>`}
+function saveWaNum(x){if(!db.profile)db.profile={};db.profile.wa=toLat(x).trim();save()}
+function waSend(){let n=toLat(v('wa_num')).replace(/\D/g,'');if(n.startsWith('0'))n='88'+n;
+ if(!db.profile)db.profile={};db.profile.wa=toLat(v('wa_num')).trim();save();
+ window.open('https://wa.me/'+n+'?text='+encodeURIComponent(v('wa_txt')),'_blank')}
+async function waCopy(){try{await navigator.clipboard.writeText(v('wa_txt'));toast('কপি হয়েছে ✔')}catch(e){const t=document.getElementById('wa_txt');t.select();toast('লেখা সিলেক্ট হয়েছে, কপি করুন')}}
+
 /* ===== আয়-ব্যয় ===== */
 const CATS=[['দোকান ভাড়া','🏪'],['পরিবহন','🚚'],['শ্রমিক খরচ','👷'],['বিদ্যুৎ ও পানি','💡'],['অন্যান্য খরচ','🧾']];
 function expensePage(){const d=state.date,c=calc(d,d),m=d.slice(0,7),mc=calc(m+'-01',m+'-31'),list=db.exp.filter(e=>e.date===d);
@@ -640,7 +665,7 @@ function reportPage(){const t=state.repTab,r=repRange(),c=calc(r.from,r.to),mult
 
 /* ===== প্রোফাইল ও ব্যাকআপ ===== */
 function profilePage(){const p=db.profile,kb=(JSON.stringify(db).length/1024).toFixed(1);
- return backBar('⚙️ সেটিং ও ব্যাকআপ','k-green')+cloudCard()+`<div class="card k-gold"><h3 class="sec">💾 ডেটা ব্যাকআপ সংরক্ষণ</h3><div class="mut" style="margin-bottom:10px">সর্বশেষ ব্যাকআপ: <b>${db.meta.lastBackup?fmtDate(db.meta.lastBackup):'এখনও নেওয়া হয়নি'}</b></div><div class="stack"><button class="btn gold" onclick="doBackup()">⬇ ব্যাকআপ ফাইল সংরক্ষণ করুন</button><button class="btn gray" onclick="copyBackup()">📋 ব্যাকআপ কপি করুন</button></div></div>`+`<div class="card k-green"><h3 class="sec">🏪 দোকানের তথ্য</h3>
+ return backBar('⚙️ সেটিং ও ব্যাকআপ','k-green')+waCard()+cloudCard()+`<div class="card k-gold"><h3 class="sec">💾 ডেটা ব্যাকআপ সংরক্ষণ</h3><div class="mut" style="margin-bottom:10px">সর্বশেষ ব্যাকআপ: <b>${db.meta.lastBackup?fmtDate(db.meta.lastBackup):'এখনও নেওয়া হয়নি'}</b></div><div class="stack"><button class="btn gold" onclick="doBackup()">⬇ ব্যাকআপ ফাইল সংরক্ষণ করুন</button><button class="btn gray" onclick="copyBackup()">📋 ব্যাকআপ কপি করুন</button></div></div>`+`<div class="card k-green"><h3 class="sec">🏪 দোকানের তথ্য</h3>
  <label>দোকানের নাম</label><input id="pf_shop" value="${esc(p.shop)}"><label>ব্যবহারকারীর নাম</label><input id="pf_owner" value="${esc(p.owner)}" placeholder="আপনার নাম">
  <label>মোবাইল নম্বর</label><input id="pf_phone" inputmode="tel" value="${esc(p.phone)}" placeholder="০১৭…"><label>ঠিকানা</label><input id="pf_addr" value="${esc(p.addr)}" placeholder="দোকানের ঠিকানা">
  <div style="margin-top:12px"><button class="btn" onclick="saveProfile()">✔ সংরক্ষণ করুন</button></div></div>
@@ -653,7 +678,7 @@ function profilePage(){const p=db.profile,kb=(JSON.stringify(db).length/1024).to
  <div style="margin-top:10px"><button class="btn gray sm" onclick="pasteSheet()">📥 কপি করা ব্যাকআপ বসান</button></div></div>
  ${archCard()}<div class="card"><h3 class="sec">🧪 অন্যান্য</h3><div class="stack"><button class="btn line k-buy sm" onclick="ask('বর্তমান সব ডেটা মুছে নমুনা ডেটা বসবে। চালিয়ে যাবেন?',demo,'হ্যাঁ, নমুনা দিন')">নমুনা ডেটা দিয়ে অ্যাপ দেখুন</button>
  <button class="btn red sm" onclick="ask('সব ডেটা চিরতরে মুছে যাবে! আগে ব্যাকআপ নিয়েছেন তো?',wipe,'হ্যাঁ, সব মুছুন')">🗑 সব ডেটা মুছুন</button></div></div>`}
-function saveProfile(){db.profile={shop:v('pf_shop').trim()||'মেসার্স আলমগীর এন্টারপ্রাইজ',owner:v('pf_owner').trim(),phone:toLat(v('pf_phone')).trim(),addr:v('pf_addr').trim()};commit('প্রোফাইল সংরক্ষিত ✔')}
+function saveProfile(){db.profile={wa:(db.profile||{}).wa||'',shop:v('pf_shop').trim()||'মেসার্স আলমগীর এন্টারপ্রাইজ',owner:v('pf_owner').trim(),phone:toLat(v('pf_phone')).trim(),addr:v('pf_addr').trim()};commit('প্রোফাইল সংরক্ষিত ✔')}
 const backupJSON=()=>JSON.stringify({app:'alamgir-enterprise',version:1,exportedAt:new Date().toISOString(),data:db},null,1);
 function markBackup(){db.meta.lastBackup=todayStr();save();if(state.page==='profile')render()}
 function downloadText(name,text){const u=URL.createObjectURL(new Blob([text],{type:'application/json'}));const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{a.remove();URL.revokeObjectURL(u)},2000)}
