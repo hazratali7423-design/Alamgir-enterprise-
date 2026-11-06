@@ -318,7 +318,7 @@ function homePage(){
  <button class="tile k-ice" onclick="go('ice')"><span class="e">🧊</span>বরফ</button>
  <button class="tile k-exp" onclick="go('expense')"><span class="e">🧾</span>খরচ</button>
  <button class="tile k-rep" onclick="go('report')"><span class="e">📊</span>রিপোর্ট</button>
- <button class="tile k-sell" onclick="go('deposit')"><span class="e">🏦</span>জমা-প্রদান</button>
+ <button class="tile k-sell" onclick="go('deposit')"><span class="e">🏦</span>গ্রহণ-প্রদান</button>
  <button class="tile k-gold" onclick="doBackup()"><span class="e">💾</span>ব্যাকআপ</button>
  </div>
  <div class="card"><h3 class="sec">এই দিনের সর্বশেষ এন্ট্রি</h3>${todays.length?todays.map(fishRow).join(''):'<div class="empty">এই তারিখে কোনো মাছের এন্ট্রি নেই।<br>উপরের “মাছ কেনা” বা “মাছ বিক্রি” চাপুন।</div>'}</div>`}
@@ -529,28 +529,32 @@ function changeSheet(){const d=state.date,cur=(db.change||{})[d];let prev=null;O
  <div class="btnrow"><button class="btn gray" onclick="closeSheet()">বাতিল</button><button class="btn gold" onclick="saveChange()">সংরক্ষণ</button></div>`,'k-gold')}
 function saveChange(){const t=v('ch_amt').trim();if(!db.change)db.change={};if(t==='')delete db.change[state.date];else db.change[state.date]=Math.max(0,num('ch_amt'));closeSheet();commit('সংরক্ষিত ✔')}
 
-/* ===== টাকা জমা ও প্রদান (আলাদা হিসাব; অন্য কোনো হিসাবে যোগ-বিয়োগ হয় না) ===== */
-const isOut=x=>x.type==='out';
-const depIn=a=>sum(a.filter(x=>!isOut(x)),x=>x.amount),depOut=a=>sum(a.filter(isOut),x=>x.amount);
-function depRow(x,showDate){const o=isOut(x);
- return `<div class="item"><div class="grow"><b>${showDate?fmtShort(x.date)+' · ':''}${o?'⬆ টাকা প্রদান':'⬇ টাকা জমা'}</b>${x.note?`<div class="mut">📝 ${esc(x.note)}</div>`:''}</div><div class="amt" style="color:var(${o?'--exp-t':'--sell-t'})">${o?'−':'+'}${taka(x.amount)}</div><button class="del" onclick="delDep('${x.id}')" aria-label="মুছুন">🗑</button></div>`}
+/* ===== টাকা জমা, গ্রহণ ও প্রদান (আলাদা হিসাব; অন্য কোনো হিসাবে যোগ-বিয়োগ হয় না) ===== */
+const DT={rec:['🤝 টাকা গ্রহণ','--gold-t','+'],out:['⬆ টাকা প্রদান','--exp-t','−']};
+const dType=x=>x.type==='out'?'out':'rec';
+const depSum=(a,t)=>sum(a.filter(x=>dType(x)===t),x=>x.amount);
+const depBal=a=>depSum(a,'rec')-depSum(a,'out');
+function depRow(x,showDate){const k=DT[dType(x)];
+ return `<div class="item"><div class="grow"><b>${showDate?fmtShort(x.date)+' · ':''}${k[0]}</b>${x.note?`<div class="mut">📝 ${esc(x.note)}</div>`:''}</div><div class="amt" style="color:var(${k[1]})">${k[2]}${taka(x.amount)}</div><button class="del" onclick="delDep('${x.id}')" aria-label="মুছুন">🗑</button></div>`}
+function depMinis(a){return `<div class="minis"><div class="mini"><b>${taka(depSum(a,'rec'))}</b>গ্রহণ</div><div class="mini"><b>${taka(depSum(a,'out'))}</b>প্রদান</div><div class="mini"><b>${taka(depBal(a))}</b>অবশিষ্ট</div></div>`}
 function depositPage(){const d=state.date,m=state.depMonth||d.slice(0,7),y=Number(m.slice(0,4)),mm=Number(m.slice(5,7));
  const day=db.dep.filter(x=>x.date===d),mon=db.dep.filter(x=>x.date.slice(0,7)===m).sort((a,b)=>b.date.localeCompare(a.date));
- return backBar('🏦 টাকা জমা ও প্রদান','k-sell')+dateBar()+`<div class="k-sell">
- <div class="btnrow" style="margin:0 0 12px"><button class="btn" onclick="depSheet('in')">⬇ টাকা জমা</button><button class="btn red" onclick="depSheet('out')">⬆ টাকা প্রদান</button></div>
- <div class="card stat"><div class="sl">${fmtShort(d)} তারিখ</div><div class="minis"><div class="mini"><b>${taka(depIn(day))}</b>জমা</div><div class="mini"><b>${taka(depOut(day))}</b>প্রদান</div><div class="mini"><b>${taka(depIn(day)-depOut(day))}</b>অবশিষ্ট</div></div></div>
+ const bt='min-height:68px;flex-direction:column;gap:0;font-size:16px';
+ return backBar('🏦 টাকা গ্রহণ ও প্রদান','k-sell')+dateBar()+`<div class="k-sell">
+ <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:0 0 12px"><button class="btn k-gold" style="${bt}" onclick="depSheet('rec')"><span>🤝</span>টাকা গ্রহণ</button><button class="btn red" style="${bt}" onclick="depSheet('out')"><span>⬆</span>টাকা প্রদান</button></div>
+ <div class="card stat"><div class="sl">${fmtShort(d)} তারিখ</div>${depMinis(day)}</div>
  <div class="card"><h3 class="sec">এই দিনের এন্ট্রি</h3>${day.length?day.slice().reverse().map(x=>depRow(x,false)).join(''):'<div class="empty">এই তারিখে কোনো এন্ট্রি নেই</div>'}</div>
  <h3 class="sec">📆 মাস শেষের হিসাব</h3>
  <div class="datebar"><button class="nb" onclick="depShift(-1)">‹</button><div class="dpick"><span>${MONTHS[mm-1]} ${bnd(y)}</span></div><button class="nb" onclick="depShift(1)">›</button></div>
- <div class="card stat"><div class="sl">${MONTHS[mm-1]} মাস</div><div class="minis"><div class="mini"><b>${taka(depIn(mon))}</b>মোট জমা</div><div class="mini"><b>${taka(depOut(mon))}</b>মোট প্রদান</div><div class="mini"><b>${taka(depIn(mon)-depOut(mon))}</b>মাসের অবশিষ্ট</div></div></div>
- <div class="card stat"><div class="sl">এ পর্যন্ত সর্বমোট অবশিষ্ট (জমা − প্রদান)</div><div class="sv">${taka(depIn(db.dep)-depOut(db.dep))}</div></div>
+ <div class="card stat"><div class="sl">${MONTHS[mm-1]} মাস</div>${depMinis(mon)}</div>
+ <div class="card stat"><div class="sl">এ পর্যন্ত সর্বমোট অবশিষ্ট (গ্রহণ − প্রদান)</div><div class="sv">${taka(depBal(db.dep))}</div></div>
  <div class="card"><h3 class="sec">${MONTHS[mm-1]} মাসের তালিকা</h3>${mon.length?mon.map(x=>depRow(x,true)).join(''):'<div class="empty">এই মাসে কোনো এন্ট্রি নেই</div>'}</div>
  <div class="note">এই হিসাব সম্পূর্ণ আলাদা — নগদ টাকা, লাভ বা অন্য কোনো হিসাবের সাথে যোগ-বিয়োগ হয় না।</div></div>`}
 function depShift(n){const m=state.depMonth||state.date.slice(0,7);const d=new Date(Number(m.slice(0,4)),Number(m.slice(5,7))-1+n,1);state.depMonth=d.getFullYear()+'-'+pad(d.getMonth()+1);render()}
-function depSheet(type){const o=type==='out';
- openSheet(o?'টাকা প্রদান':'টাকা জমা',`<div class="mut">তারিখ ${fmtDate(state.date)}</div><label>${o?'প্রদানের':'জমার'} পরিমাণ (৳)</label><input id="dp_amt" inputmode="decimal" placeholder="০">
- <label>নোট</label><input id="dp_note" placeholder="${o?'কাকে/কেন দিলাম':'যেমন: ব্যাংকে জমা'}">
- <div class="btnrow"><button class="btn gray" onclick="closeSheet()">বাতিল</button><button class="btn ${o?'red':'k-sell'}" onclick="saveDep('${type}')">সংরক্ষণ</button></div>`,'k-sell')}
+function depSheet(type){const t=DT[type][0].replace(/^\S+\s/,''),ph={rec:'কার কাছ থেকে নিলাম',out:'কাকে/কেন দিলাম'}[type];
+ openSheet(t,`<div class="mut">তারিখ ${fmtDate(state.date)}</div><label>${t}র পরিমাণ (৳)</label><input id="dp_amt" inputmode="decimal" placeholder="০">
+ <label>নোট</label><input id="dp_note" placeholder="${ph}">
+ <div class="btnrow"><button class="btn gray" onclick="closeSheet()">বাতিল</button><button class="btn ${type==='out'?'red':'gold'}" onclick="saveDep('${type}')">সংরক্ষণ</button></div>`,'k-gold')}
 function saveDep(type){const a=num('dp_amt');if(!(a>0))return toast('টাকার পরিমাণ লিখুন','err');db.dep.push({id:uid(),date:state.date,type,amount:a,note:v('dp_note').trim()});closeSheet();commit('সংরক্ষিত ✔')}
 function delDep(id){ask('এই এন্ট্রি মুছবেন?',()=>{db.dep=db.dep.filter(x=>x.id!==id);commit('মুছে ফেলা হয়েছে')})}
 
