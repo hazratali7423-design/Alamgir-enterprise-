@@ -452,7 +452,8 @@ function attView(){const d=state.date,m=d.slice(0,7);
   return `<div class="card k-staff"><div class="shead"><div class="avatar">${esc(s.name.trim().charAt(0))}</div><div class="grow"><b style="font-size:18px">${esc(s.name)}</b><br>${s.phone?`<a href="tel:${esc(s.phone)}">📞 ${bnd(esc(s.phone))}</a>`:'<span class="mut">মোবাইল নম্বর নেই</span>'}</div>
   <button class="del" onclick="staffSheet('${s.id}')" aria-label="নাম এডিট">✏️</button></div>
   <div class="tri"><button class="p ${r.s==='p'?'on':''}" onclick="setAtt('${s.id}','p')">✅<br>উপস্থিত</button><button class="a ${r.s==='a'?'on':''}" onclick="setAtt('${s.id}','a')">❌<br>অনুপস্থিত</button><button class="h ${r.s==='h'?'on':''}" onclick="setAtt('${s.id}','h')">🌗<br>হাফ বেলা</button></div>
-  <label>আজ কত টাকা নিল (৳)</label><input inputmode="decimal" placeholder="০" value="${r.t||''}" onchange="setTaken('${s.id}',this.value)">
+  <label>আজ টাকা নিল: <b style="color:var(--due-t)">${taka(r.t||0)}</b></label><input id="tk_${s.id}" inputmode="decimal" placeholder="টাকার পরিমাণ লিখুন (৳)">
+  <div class="tri" style="margin-top:8px"><button class="btn k-sell sm" onclick="takenOp('${s.id}','add')">➕ যোগ</button><button class="btn k-due sm" onclick="takenOp('${s.id}','sub')">➖ বিয়োগ</button><button class="btn red sm" onclick="takenOp('${s.id}','clear')">🗑 মুছুন</button></div>
   <div class="minis"><div class="mini"><b>${bnNum(p,0)}</b>মাসে উপস্থিত</div><div class="mini"><b>${bnNum(a,0)} / ${bnNum(h,0)}</b>অনুপস্থিত / হাফ</div><div class="mini"><b>${taka(t)}</b>মাসে মোট নিল</div></div>
    ${z.sal>0?`<div class="minis" style="margin-top:8px"><div class="mini"><b>${taka(z.sal)}</b>মাসিক বেতন</div><div class="mini"><b>${taka(z.ded)}</b>অনুপস্থিতির কাটা</div><div class="mini"><b>${taka(Math.abs(z.rem))}</b>${z.rem>=0?'বাকি বেতন':'বেশি নিয়েছে'}</div></div>`:`<div class="mut" style="margin-top:8px">মাসিক বেতন দেওয়া নেই। ✏️ চেপে যোগ করুন।</div>`}
   <div style="margin-top:10px"><button class="btn gray sm" onclick="staffHistory('${s.id}')">📜 তারিখ অনুযায়ী রেকর্ড</button></div></div>`}).join('')+
@@ -463,6 +464,12 @@ function salSummary(m){const L=db.staff.map(s=>({s,z:salCalc(s,m)})).filter(x=>x
  const T=k=>sum(L,x=>x.z[k]),rem=T('rem');
  return`<div class="card k-staff"><h3 class="sec">📋 ${MONTHS[Number(m.slice(5,7))-1]} ${bnd(m.slice(0,4))} — বেতনের হিসাব</h3><div class="scroll"><table class="tbl"><tr><th>নাম</th><th>বেতন</th><th>কাটা</th><th>নিয়েছে</th><th>বাকি</th></tr>${L.map(({s,z})=>`<tr><td>${esc(s.name)}</td><td>${taka(z.sal)}</td><td>${taka(z.ded)}</td><td>${taka(z.t)}</td><td><b>${z.rem<0?'−':''}${taka(Math.abs(z.rem))}</b></td></tr>`).join('')}<tr><td><b>মোট</b></td><td><b>${taka(T('sal'))}</b></td><td><b>${taka(T('ded'))}</b></td><td><b>${taka(T('t'))}</b></td><td><b>${rem<0?'−':''}${taka(Math.abs(rem))}</b></td></tr></table></div></div>`}
 function setAtt(id,s){const k=state.date+'|'+id,r=db.att[k]||{};r.s=r.s===s?'':s;if(!r.s&&!r.t)delete db.att[k];else db.att[k]=r;commit()}
+function takenOp(id,op){const k=state.date+'|'+id,r=db.att[k]||{},cur=r.t||0,a=num('tk_'+id);
+ const put=t=>{r.t=Math.max(0,Math.round(t*100)/100);if(!r.s&&!r.t)delete db.att[k];else db.att[k]=r;commit(op==='add'?'যোগ হয়েছে ✔':op==='sub'?'বিয়োগ হয়েছে ✔':'মুছে ফেলা হয়েছে')};
+ if(op==='clear'){if(!(cur>0))return toast('মোছার মতো কোনো টাকা নেই','err');return ask(esc(staffName(id))+'-এর আজকের '+taka(cur)+' মুছে ফেলবেন?',()=>put(0))}
+ if(!(a>0))return toast('আগে টাকার পরিমাণ লিখুন','err');
+ if(op==='sub'&&a>cur)return toast('আজ নিয়েছে মাত্র '+taka(cur)+', এর বেশি বিয়োগ করা যাবে না','err');
+ put(op==='add'?cur+a:cur-a)}
 function setTaken(id,val){const k=state.date+'|'+id,r=db.att[k]||{};r.t=Math.max(0,parseFloat(toLat(val).replace(/,/g,''))||0);if(!r.s&&!r.t)delete db.att[k];else db.att[k]=r;commit('সংরক্ষিত ✔')}
 function staffSheet(id){const s=db.staff.find(x=>x.id===id);
  openSheet('কর্মচারীর তথ্য',`<label>কর্মচারীর নাম</label><input id="st_name" value="${esc(s.name)}"><label>মোবাইল নম্বর</label><input id="st_phone" inputmode="tel" value="${esc(s.phone)}" placeholder="০১৭…"><label>মাসিক বেতন (৳)</label><input id="st_salary" inputmode="decimal" placeholder="০" value="${s.salary||''}">
