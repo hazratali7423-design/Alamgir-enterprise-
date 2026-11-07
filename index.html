@@ -454,31 +454,43 @@ function attView(){const d=state.date,m=d.slice(0,7);
   <div class="tri"><button class="p ${r.s==='p'?'on':''}" onclick="setAtt('${s.id}','p')">✅<br>উপস্থিত</button><button class="a ${r.s==='a'?'on':''}" onclick="setAtt('${s.id}','a')">❌<br>অনুপস্থিত</button><button class="h ${r.s==='h'?'on':''}" onclick="setAtt('${s.id}','h')">🌗<br>হাফ বেলা</button></div>
   <label>আজ টাকা নিল: <b style="color:var(--due-t)">${taka(r.t||0)}</b></label><input id="tk_${s.id}" inputmode="decimal" placeholder="টাকার পরিমাণ লিখুন (৳)">
   <div class="tri" style="margin-top:8px"><button class="btn k-sell sm" onclick="takenOp('${s.id}','add')">➕ যোগ</button><button class="btn k-due sm" onclick="takenOp('${s.id}','sub')">➖ বিয়োগ</button><button class="btn red sm" onclick="takenOp('${s.id}','clear')">🗑 মুছুন</button></div>
+  <label>📝 নোট (ঐচ্ছিক)</label><input id="nt_${s.id}" value="${esc(r.n||'')}" placeholder="যেমন: বাজার খরচ, বাসা ভাড়া" onchange="setNote('${s.id}',this.value)">
   <div class="minis"><div class="mini"><b>${bnNum(p,0)}</b>মাসে উপস্থিত</div><div class="mini"><b>${bnNum(a,0)} / ${bnNum(h,0)}</b>অনুপস্থিত / হাফ</div><div class="mini"><b>${taka(t)}</b>মাসে মোট নিল</div></div>
    ${z.sal>0?`<div class="minis" style="margin-top:8px"><div class="mini"><b>${taka(z.sal)}</b>মাসিক বেতন</div><div class="mini"><b>${taka(z.ded)}</b>অনুপস্থিতির কাটা</div><div class="mini"><b>${taka(Math.abs(z.rem))}</b>${z.rem>=0?'বাকি বেতন':'বেশি নিয়েছে'}</div></div>`:`<div class="mut" style="margin-top:8px">মাসিক বেতন দেওয়া নেই। ✏️ চেপে যোগ করুন।</div>`}
-  <div style="margin-top:10px"><button class="btn gray sm" onclick="staffHistory('${s.id}')">📜 তারিখ অনুযায়ী রেকর্ড</button></div></div>`}).join('')+
+  <div style="margin-top:10px"><button class="btn gray sm" onclick="staffHistory('${s.id}')">💸 টাকা নেওয়ার বিবরণ</button></div></div>`}).join('')+
  salSummary(m)+`<div class="note">মাসিক বেতন: প্রতিদিনের বেতন = মাসিক বেতন ÷ ৩০। ১ দিন অনুপস্থিত হলে পুরো দিনের, হাফ বেলায় আধা দিনের বেতন কাটা হয়। বেতনের এই হিসাব শুধু দেখার জন্য; খরচের হিসাবে যায় শুধু “টাকা নিল” অংশ।</div>`+`<div class="note">হাজিরায় “টাকা নিল” অংশটি শ্রমিক খরচ হিসেবে খরচের হিসাবে নিজে থেকেই যোগ হয়। ব্যক্তিগত অগ্রিম আলাদা — “অগ্রিম ও লেনদেন” ট্যাবে।</div>`}
 function salCalc(s,m){let p=0,a=0,h=0,t=0;for(const k in db.att){if(k.startsWith(m)&&k.endsWith('|'+s.id)){const z=db.att[k];if(z.s==='p')p++;if(z.s==='a')a++;if(z.s==='h')h++;t+=z.t||0}}
  const sal=Number(s.salary)||0,ded=Math.round(sal/30*(a+h/2)),pay=sal-ded;return{p,a,h,t,sal,ded,pay,rem:pay-t}}
 function salSummary(m){const L=db.staff.map(s=>({s,z:salCalc(s,m)})).filter(x=>x.z.sal>0);if(!L.length)return'';
  const T=k=>sum(L,x=>x.z[k]),rem=T('rem');
  return`<div class="card k-staff"><h3 class="sec">📋 ${MONTHS[Number(m.slice(5,7))-1]} ${bnd(m.slice(0,4))} — বেতনের হিসাব</h3><div class="scroll"><table class="tbl"><tr><th>নাম</th><th>বেতন</th><th>কাটা</th><th>নিয়েছে</th><th>বাকি</th></tr>${L.map(({s,z})=>`<tr><td>${esc(s.name)}</td><td>${taka(z.sal)}</td><td>${taka(z.ded)}</td><td>${taka(z.t)}</td><td><b>${z.rem<0?'−':''}${taka(Math.abs(z.rem))}</b></td></tr>`).join('')}<tr><td><b>মোট</b></td><td><b>${taka(T('sal'))}</b></td><td><b>${taka(T('ded'))}</b></td><td><b>${taka(T('t'))}</b></td><td><b>${rem<0?'−':''}${taka(Math.abs(rem))}</b></td></tr></table></div></div>`}
-function setAtt(id,s){const k=state.date+'|'+id,r=db.att[k]||{};r.s=r.s===s?'':s;if(!r.s&&!r.t)delete db.att[k];else db.att[k]=r;commit()}
+function setAtt(id,s){const k=state.date+'|'+id,r=db.att[k]||{};r.s=r.s===s?'':s;if(!r.s&&!r.t&&!r.n)delete db.att[k];else db.att[k]=r;commit()}
+function setNote(id,val){const k=state.date+'|'+id,r=db.att[k]||{};r.n=val.trim();if(!r.s&&!r.t&&!r.n)delete db.att[k];else db.att[k]=r;commit('নোট সংরক্ষিত ✔')}
 function takenOp(id,op){const k=state.date+'|'+id,r=db.att[k]||{},cur=r.t||0,a=num('tk_'+id);
- const put=t=>{r.t=Math.max(0,Math.round(t*100)/100);if(!r.s&&!r.t)delete db.att[k];else db.att[k]=r;commit(op==='add'?'যোগ হয়েছে ✔':op==='sub'?'বিয়োগ হয়েছে ✔':'মুছে ফেলা হয়েছে')};
+ const put=t=>{r.t=Math.max(0,Math.round(t*100)/100);r.n=op==='clear'?'':v('nt_'+id).trim();if(!r.s&&!r.t&&!r.n)delete db.att[k];else db.att[k]=r;commit(op==='add'?'যোগ হয়েছে ✔':op==='sub'?'বিয়োগ হয়েছে ✔':'মুছে ফেলা হয়েছে')};
  if(op==='clear'){if(!(cur>0))return toast('মোছার মতো কোনো টাকা নেই','err');return ask(esc(staffName(id))+'-এর আজকের '+taka(cur)+' মুছে ফেলবেন?',()=>put(0))}
  if(!(a>0))return toast('আগে টাকার পরিমাণ লিখুন','err');
  if(op==='sub'&&a>cur)return toast('আজ নিয়েছে মাত্র '+taka(cur)+', এর বেশি বিয়োগ করা যাবে না','err');
  put(op==='add'?cur+a:cur-a)}
-function setTaken(id,val){const k=state.date+'|'+id,r=db.att[k]||{};r.t=Math.max(0,parseFloat(toLat(val).replace(/,/g,''))||0);if(!r.s&&!r.t)delete db.att[k];else db.att[k]=r;commit('সংরক্ষিত ✔')}
+function setTaken(id,val){const k=state.date+'|'+id,r=db.att[k]||{};r.t=Math.max(0,parseFloat(toLat(val).replace(/,/g,''))||0);if(!r.s&&!r.t&&!r.n)delete db.att[k];else db.att[k]=r;commit('সংরক্ষিত ✔')}
 function staffSheet(id){const s=db.staff.find(x=>x.id===id);
  openSheet('কর্মচারীর তথ্য',`<label>কর্মচারীর নাম</label><input id="st_name" value="${esc(s.name)}"><label>মোবাইল নম্বর</label><input id="st_phone" inputmode="tel" value="${esc(s.phone)}" placeholder="০১৭…"><label>মাসিক বেতন (৳)</label><input id="st_salary" inputmode="decimal" placeholder="০" value="${s.salary||''}">
  <div class="btnrow"><button class="btn gray" onclick="closeSheet()">বাতিল</button><button class="btn k-staff" onclick="saveStaff('${id}')">সংরক্ষণ</button></div>`,'k-staff')}
 function saveStaff(id){const n=v('st_name').trim();if(!n)return toast('নাম লিখুন','err');const s=db.staff.find(x=>x.id===id);s.name=n;s.phone=toLat(v('st_phone')).trim();s.salary=Math.max(0,parseFloat(toLat(v('st_salary')).replace(/,/g,''))||0);closeSheet();commit('সংরক্ষিত ✔')}
-function staffHistory(id){const s=db.staff.find(x=>x.id===id);
- const rows=Object.keys(db.att).filter(k=>k.endsWith('|'+id)).map(k=>({d:k.split('|')[0],...db.att[k]})).sort((a,b)=>b.d.localeCompare(a.d));
- openSheet(s.name+' — রেকর্ড',`<div class="minis" style="margin:6px 0"><div class="mini"><b>${bnNum(rows.filter(r=>r.s==='p').length,0)}</b>উপস্থিত</div><div class="mini"><b>${bnNum(rows.filter(r=>r.s==='a').length,0)}</b>অনুপস্থিত</div><div class="mini"><b>${taka(sum(rows,r=>r.t||0))}</b>মোট নিল</div></div>
- ${rows.length?rows.map(r=>`<div class="item"><div class="grow"><b>${fmtDate(r.d)}</b><div class="mut">${fmtDay(r.d)}</div></div><div>${r.s?ATT[r.s]:'—'}</div><div class="amt">${r.t?taka(r.t):''}</div></div>`).join(''):'<div class="empty">কোনো রেকর্ড নেই</div>'}`,'k-staff')}
+function staffHistory(id,only){if(only===undefined)only=true;
+ const s=db.staff.find(x=>x.id===id),map={},row=d=>map[d]||(map[d]={d,t:0,adv:[],s:''});
+ Object.keys(db.att).filter(k=>k.endsWith('|'+id)).forEach(k=>{const d=k.split('|')[0],r=row(d);r.s=db.att[k].s||'';r.t=db.att[k].t||0;r.n=db.att[k].n||''});
+ db.emptx.filter(t=>t.empId===id&&t.type==='adv').forEach(t=>{row(t.date).adv.push(t)});
+ const amt=r=>r.t+sum(r.adv,x=>x.amount);
+ let rows=Object.values(map).sort((x,y)=>y.d.localeCompare(x.d));if(only)rows=rows.filter(r=>amt(r)>0);
+ const mon={};rows.forEach(r=>{(mon[r.d.slice(0,7)]=mon[r.d.slice(0,7)]||[]).push(r)});
+ const body=rows.length?Object.keys(mon).map(m=>{const y=Number(m.slice(0,4)),mm=Number(m.slice(5,7)),a=mon[m];
+  return `<div class="kv tot" style="margin-top:10px;background:var(--g1);border-radius:10px;padding:8px 10px"><span>📆 ${MONTHS[mm-1]} ${bnd(y)}</span><b>মোট ${taka(sum(a,amt))}</b></div>`+a.map(r=>`<div style="padding:10px 0;border-bottom:1px dashed var(--line)"><div style="display:flex;justify-content:space-between;gap:8px"><b>${fmtDate(r.d)} · ${fmtDay(r.d)}</b><b style="color:var(--due-t);white-space:nowrap">${taka(amt(r))}</b></div>
+   ${r.t?`<div class="mut">💸 হাজিরায় নিল: ${taka(r.t)}${r.s?' ('+ATT[r.s]+')':''}</div>`:(r.s?`<div class="mut">${ATT[r.s]}</div>`:'')}
+   ${r.adv.map(x=>`<div class="mut">🙋 ব্যক্তিগত অগ্রিম: ${taka(x.amount)}${x.note?' · '+esc(x.note):''}</div>`).join('')}${r.n?`<div class="mut">📝 নোট: ${esc(r.n)}</div>`:''}</div>`).join('')}).join(''):'<div class="empty">কোনো রেকর্ড নেই</div>';
+ openSheet(s.name+' — টাকা নেওয়ার বিবরণ',`<div class="minis" style="margin:6px 0"><div class="mini"><b>${bnNum(rows.filter(r=>amt(r)>0).length,0)}</b>যত দিন নিল</div><div class="mini"><b>${taka(sum(rows,r=>r.t))}</b>হাজিরায় নিল</div><div class="mini"><b>${taka(sum(rows,r=>sum(r.adv,x=>x.amount)))}</b>অগ্রিম</div></div>
+ <div class="kv tot"><span>সর্বমোট নিয়েছে</span><b>${taka(sum(rows,amt))}</b></div>
+ <div class="chips"><button class="chip" style="${only?'background:var(--g2)':''}" onclick="staffHistory('${id}',true)">শুধু টাকা নেওয়া দিন</button><button class="chip" style="${only?'':'background:var(--g2)'}" onclick="staffHistory('${id}',false)">সব দিন (হাজিরাসহ)</button></div>${body}`,'k-staff')}
 const TXN={adv:['ব্যক্তিগত অগ্রিম','🙋','due'],fish:['মাছ কেনার টাকা','🐟','buy'],ret:['টাকা ফেরত','↩️','sell']};
 function txView(){const d=state.date;
  const day=db.emptx.filter(t=>t.date===d);
