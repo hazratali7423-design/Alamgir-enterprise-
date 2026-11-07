@@ -572,6 +572,14 @@ function waText(d){const c=calc(d,d),baki=totalBaki(d),ch=(db.change||{})[d],L=[
  if(c.iceSellAmt>0)L.push('🧊 বরফ বিক্রি: '+taka(c.iceSellAmt));
  L.push('🧾 মোট খরচ: '+taka(c.cost),(c.profit<0?'📉 ক্ষতি: -':'📈 লাভ: +')+taka(Math.abs(c.profit)),'━━━━━━━━━━','💰 বাকি আদায়: '+taka(c.collect),'💵 নগদ (আসা − গেছে): '+taka(c.cash));
  if(ch!=null)L.push('🪙 ভাংতি: '+taka(ch),'🏧 ক্যাশে মোট: '+taka(ch+c.cash));
+ const took={},paid={},ad=(m,id,a)=>{m[id]=(m[id]||0)+a};
+ db.fish.forEach(x=>{if(x.date===d&&x.type==='sell'&&x.custId){const du=x.kg*x.rate-x.received;if(du>0.004)ad(took,x.custId,du)}});
+ db.ledger.forEach(l=>{if(l.date!==d)return;if(l.type==='due')ad(took,l.custId,l.amount);else ad(paid,l.custId,l.amount)});
+ const cl=m=>Object.keys(m).map(id=>'   • '+(custName(id)||'কাস্টমার')+': '+taka(m[id])+' (মোট বাকি '+taka(custStats(id,d).bal)+')');
+ L.push('━━━━━━━━━━');
+ L.push(Object.keys(took).length?'🔴 আজ যারা বাকি নিল (মোট '+taka(sum(Object.keys(took),i=>took[i]))+'):':'🔴 আজ কেউ বাকি নেয়নি');L.push(...cl(took));
+ L.push(Object.keys(paid).length?'🟢 আজ যারা পেমেন্ট দিল (মোট '+taka(sum(Object.keys(paid),i=>paid[i]))+'):':'🟢 আজ কেউ পেমেন্ট দেয়নি');L.push(...cl(paid));
+ L.push('━━━━━━━━━━');
  L.push('📌 মোট বাকি (পাওনা): '+taka(baki),'🧊 বরফ অবশিষ্ট: '+bnNum(iceStock(d))+' টি');
  return L.join('\n')}
 function waSheet(d){const n=(db.profile&&db.profile.wa)||'';
