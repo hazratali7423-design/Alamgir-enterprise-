@@ -677,6 +677,13 @@ function repShift(n){const t=state.repTab;
  if(t==='day')state.repDate=addDays(state.repDate,n);else if(t==='week')state.repDate=addDays(state.repDate,7*n);
  else if(t==='year')state.repYear=String(Number(state.repYear)+n);
  else{const[y,m]=state.repMonth.split('-').map(Number);const d=new Date(y,m-1+n,1);state.repMonth=d.getFullYear()+'-'+pad(d.getMonth()+1)}render()}
+function bakiEntries(from,to){const L=[];
+ db.fish.forEach(x=>{if(x.type==='sell'&&x.date>=from&&x.date<=to){const du=x.kg*x.rate-x.received;if(du>0.004)L.push({d:x.date,name:custName(x.custId)||'নাম নেই',amt:du,note:'মাছ বিক্রি (মোট '+taka(x.kg*x.rate)+(x.received>0?', নগদ '+taka(x.received):'')+')'})}});
+ db.ledger.forEach(l=>{if(l.type==='due'&&l.date>=from&&l.date<=to)L.push({d:l.date,name:custName(l.custId)||'নাম নেই',amt:l.amount,note:'বাকি লেখা'+(l.note?' · '+l.note:'')})});
+ return L.sort((a,b)=>b.d.localeCompare(a.d))}
+function bakiBlock(from,to){const L=bakiEntries(from,to),single=from===to;
+ return `<div class="kv"><span>📒 বাকি রেখেছি (মোট)</span><b style="color:var(--due-t)">${taka(sum(L,x=>x.amt))}</b></div>`+
+ (L.length?L.map(x=>`<div class="item" style="padding:8px 0 8px 12px"><div class="grow"><b>${esc(x.name)}</b><div class="mut">${single?'':fmtShort(x.d)+' · '}${esc(x.note)}</div></div><div class="amt" style="color:var(--due-t)">${taka(x.amt)}</div></div>`).join(''):'<div class="mut" style="padding:6px 0 8px 12px">এই সময়ে কোনো বাকি এন্ট্রি নেই</div>')}
 function reportPage(){const t=state.repTab,r=repRange(),c=calc(r.from,r.to),multi=t!=='day';
  const names={};db.fish.filter(x=>x.date>=r.from&&x.date<=r.to).forEach(x=>{const n=names[x.name]||(names[x.name]={bk:0,ba:0,sk:0,sa:0});if(x.type==='buy'){n.bk+=x.kg;n.ba+=x.kg*x.rate}else{n.sk+=x.kg;n.sa+=x.kg*x.rate}});
  let days='';if(t==='year'){days=yearRows(r)}else if(multi){const list=[];for(let d=r.from;d<=r.to;d=addDays(d,1)){const k=calc(d,d);if(k.sell||k.buy||k.cost||k.iceSellAmt)list.push({d,k})}
@@ -689,7 +696,7 @@ function reportPage(){const t=state.repTab,r=repRange(),c=calc(r.from,r.to),mult
  <div class="btnrow" style="margin:0 0 12px"><button class="btn" onclick="shareReport()">📤 শেয়ার করুন</button><button class="btn gray" onclick="copyReport()">📋 লেখা কপি</button></div>
  <div class="grid2"><div class="k-buy">${stat('buy','🛒','মোট কেনা',taka(c.buy),bnNum(c.buyKg)+' কেজি')}</div><div class="k-sell">${stat('sell','💵','মোট বিক্রি',taka(c.sell),bnNum(c.sellKg)+' কেজি')}</div>
  ${stat('exp','🧾','মোট খরচ',taka(c.cost))}${stat(c.profit<0?'exp':'green',c.profit<0?'📉':'📈',c.profit<0?'ক্ষতি':'লাভ',(c.profit<0?'-':'+')+taka(Math.abs(c.profit)),c.iceSellAmt>0?'বিক্রি + বরফ বিক্রি − কেনা − খরচ':'বিক্রি − কেনা − খরচ')}</div>
- <div class="card"><h3 class="sec">💵 বিক্রি ও বাকি</h3>${kvs([['নগদ পেয়েছি',taka(c.recv)],['বাকি রেখেছি',taka(c.due)],['পুরনো বাকি আদায়',taka(c.collect)],...(c.iceSellAmt>0?[['🧊 বরফ বাইরে বিক্রি (নগদ)',taka(c.iceSellAmt)]]:[])])}</div>
+ <div class="card"><h3 class="sec">💵 বিক্রি ও বাকি</h3>${kvs([['নগদ পেয়েছি',taka(c.recv)]])}${bakiBlock(r.from,r.to)}${kvs([['পুরনো বাকি আদায়',taka(c.collect)],...(c.iceSellAmt>0?[['🧊 বরফ বাইরে বিক্রি (নগদ)',taka(c.iceSellAmt)]]:[])])}</div>
  <div class="card"><h3 class="sec">🧾 খরচের বিবরণ</h3>${kvs([...CATS.map(x=>[x[1]+' '+x[0],taka(c.expBy[x[0]]||0)]),['👷 শ্রমিক (হাজিরা থেকে)',taka(c.att)],['🧊 বরফ ক্রয়',taka(c.iceCost)]])}<div class="kv tot"><span>মোট খরচ</span><b>${taka(c.cost)}</b></div></div>
  <div class="card"><h3 class="sec">💵 নগদ টাকার প্রবাহ</h3>${kvs([['আসা',taka(c.cashIn)],['গেছে',taka(c.cashOut)]])}<div class="kv tot"><span>নগদ (আসা − গেছে)</span><b>${taka(c.cash)}</b></div></div>
  <div class="card" style="display:none"><h3 class="sec">🐟 মাছ অনুযায়ী</h3>${Object.keys(names).length?`<div class="scroll"><table class="tbl"><tr><th>মাছ</th><th>কেনা কেজি</th><th>কেনা ৳</th><th>বিক্রি কেজি</th><th>বিক্রি ৳</th></tr>${Object.keys(names).map(n=>{const z=names[n];return `<tr><td>${esc(n)}</td><td>${bnNum(z.bk)}</td><td>${taka(z.ba)}</td><td>${bnNum(z.sk)}</td><td>${taka(z.sa)}</td></tr>`}).join('')}</table></div>`:'<div class="empty">কোনো এন্ট্রি নেই</div>'}</div>`+days}
